@@ -530,3 +530,56 @@
   font-weight: 900;
   cursor: pointer;
 }
+
+/* ========================================
+   Responsive Breakpoints for Mechanic Dashboard
+   ======================================== */
+@media (max-width: 900px) {
+  .mechanic-sidebar {
+    display: none;
+  }
+
+  .mechanic-sidebar.mobile-open {
+    display: flex;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 260px;
+    z-index: 99999;
+  }
+
+  .mechanic-hero-metrics {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.85rem;
+  }
+
+  .mechanic-header {
+    padding: 1rem;
+  }
+
+  .mechanic-body {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .mechanic-hero-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .aj-actions {
+    flex-direction: column;
+    gap: 0.65rem;
+  }
+
+  .sos-popup-card {
+    padding: 1.15rem;
+    max-width: 95vw;
+  }
+
+  .mechanic-modal-card {
+    padding: 1.15rem;
+    max-width: 95vw;
+  }
+}
