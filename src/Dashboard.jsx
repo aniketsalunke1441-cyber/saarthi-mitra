@@ -444,7 +444,7 @@ function Dashboard() {
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', margin: '10px 0 10px 0' }}>
               
               {/* Semi-Circle SVG Radial Gauge */}
-              <svg width="280" height="140" viewBox="0 0 300 155" style={{ overflow: 'visible' }}>
+              <svg width="280" height="140" viewBox="0 0 300 155" style={{ maxWidth: '100%', height: 'auto', overflow: 'visible' }}>
                 
                 {/* Outer Arc: Breakdowns (Orange/Coral) */}
                 <path
