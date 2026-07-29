@@ -794,7 +794,7 @@ export default function Dashboard() {
       {/* Breakdown Help Modal - Photo Upload & Diagnosis Form */}
       {isBreakdownModalOpen && (
         <div className="dash-modal-overlay">
-          <div className="dash-modal-card" style={{ maxWidth: '620px', background: '#f8fafc', padding: '1.75rem' }}>
+          <div className="dash-modal-card" style={{ maxWidth: '620px', background: '#ffffff', padding: '1.75rem' }}>
             <div className="dash-modal-header" style={{ marginBottom: '1.25rem' }}>
               <h3 style={{ color: '#0f172a', fontSize: '1.4rem', fontWeight: '800' }}>Breakdown Help</h3>
               <button className="close-modal-btn" onClick={() => setIsBreakdownModalOpen(false)}>✕</button>

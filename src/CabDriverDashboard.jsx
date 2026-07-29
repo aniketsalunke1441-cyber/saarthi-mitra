@@ -48,7 +48,20 @@ export default function CabDriverDashboard() {
     { id: 2, sender: 'driver', text: 'On my way! Arriving in 2 mins.', time: '10:13 AM' }
   ]);
 
-  // Load driver profile & photo from localStorage if present
+  // Incoming Ride Request State (Synced with Passenger Dashboard)
+  const [passengerBookingReq, setPassengerBookingReq] = useState({
+    passenger: 'Rahul Sharma',
+    rating: '4.8 ⭐',
+    otp: '4621',
+    pickup: 'MG Road, Main Market',
+    drop: 'Pune International Airport',
+    distance: '8.4 km',
+    fare: 420,
+    eta: '12 min',
+    status: 'pending'
+  });
+
+  // Load driver profile & listen for incoming passenger ride requests
   useEffect(() => {
     try {
       const saved = localStorage.getItem('driverProfile');
@@ -61,6 +74,26 @@ export default function CabDriverDashboard() {
     } catch (e) {
       console.error("Error reading profile", e);
     }
+
+    const checkIncomingRide = () => {
+      try {
+        const savedBooking = localStorage.getItem('activeRideBooking');
+        const bookingStatus = localStorage.getItem('activeRideBookingStatus');
+        if (savedBooking && bookingStatus === 'pending') {
+          const parsed = JSON.parse(savedBooking);
+          setPassengerBookingReq(parsed);
+          setShowRidePopup(true);
+        }
+      } catch (err) {}
+    };
+
+    checkIncomingRide();
+    const interval = setInterval(checkIncomingRide, 1000);
+    window.addEventListener('storage', checkIncomingRide);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('storage', checkIncomingRide);
+    };
   }, []);
 
   const handlePhotoUpload = (e) => {
@@ -91,22 +124,32 @@ export default function CabDriverDashboard() {
   // Ride Request Handlers
   const handleAcceptRide = () => {
     setShowRidePopup(false);
-    setActiveRide({
-      passenger: 'Rahul Sharma',
-      rating: '4.8 ⭐',
-      otp: '4621',
-      pickup: 'MG Road (Gate 2)',
-      drop: 'Pune International Airport',
-      distance: '8.4 km',
-      fare: 420,
-      eta: '2 min away',
-      status: 'In Progress'
-    });
-    triggerToast('✅ Ride Accepted! Route Navigation Loaded.');
+    const acceptedRide = {
+      passenger: passengerBookingReq.passenger || 'Rahul Sharma',
+      rating: passengerBookingReq.rating || '4.8 ⭐',
+      otp: passengerBookingReq.otp || '4621',
+      pickup: passengerBookingReq.pickup || 'MG Road, Main Market',
+      drop: passengerBookingReq.drop || 'Pune International Airport',
+      distance: passengerBookingReq.distance || '8.4 km',
+      fare: passengerBookingReq.fare || 420,
+      eta: passengerBookingReq.eta || '2 min away',
+      status: 'Navigating to Pickup'
+    };
+    setActiveRide(acceptedRide);
+    try {
+      localStorage.setItem('activeRideBookingStatus', 'accepted');
+      window.dispatchEvent(new Event('storage'));
+    } catch (err) {}
+    setShowNavigationModal(true); // Auto-open live customer map location!
+    triggerToast(`✅ Ride Accepted for ${acceptedRide.passenger}! Route Navigation Loaded.`);
   };
 
   const handleDeclineRide = () => {
     setShowRidePopup(false);
+    try {
+      localStorage.setItem('activeRideBookingStatus', 'declined');
+      window.dispatchEvent(new Event('storage'));
+    } catch (err) {}
     triggerToast('❌ Ride Declined. Searching for next request...');
   };
 
@@ -272,32 +315,32 @@ export default function CabDriverDashboard() {
         {showRidePopup && (
           <div className="ride-popup-overlay">
             <div className="ride-popup-card">
-              <div className="ride-popup-badge">⚡ NEW RIDE REQUEST</div>
+              <div className="ride-popup-badge">⚡ NEW PASSENGER RIDE REQUEST</div>
               <div className="ride-popup-header">
                 <div className="passenger-avatar-box">
                   <span>👤</span>
                 </div>
                 <div className="passenger-info">
-                  <h4>Rahul Sharma</h4>
-                  <div className="passenger-rating">⭐ 4.8 • Top Rated Passenger</div>
+                  <h4>{passengerBookingReq.passenger}</h4>
+                  <div className="passenger-rating">{passengerBookingReq.rating || '⭐ 4.8'} • Passenger</div>
                 </div>
-                <div className="fare-badge">₹420</div>
+                <div className="fare-badge">₹{passengerBookingReq.fare}</div>
               </div>
 
               <div className="route-timeline">
                 <div className="timeline-item pickup">
                   <span className="dot green"></span>
                   <div>
-                    <small>PICKUP (12 min ETA)</small>
-                    <p>MG Road, Main Market</p>
+                    <small>PICKUP ({passengerBookingReq.eta || '12 min ETA'})</small>
+                    <p>{passengerBookingReq.pickup}</p>
                   </div>
                 </div>
                 <div className="timeline-connector"></div>
                 <div className="timeline-item drop">
                   <span className="dot red"></span>
                   <div>
-                    <small>DROP (8.4 km)</small>
-                    <p>Pune International Airport</p>
+                    <small>DROP ({passengerBookingReq.distance || '8.2 km'})</small>
+                    <p>{passengerBookingReq.drop}</p>
                   </div>
                 </div>
               </div>
@@ -474,11 +517,11 @@ export default function CabDriverDashboard() {
                   </div>
                 </div>
 
-                {/* CARD 4: ACTIVE RIDE */}
+                {/* CARD 4: ACTIVE RIDE & LIVE CUSTOMER MAP */}
                 <div className="home-card active-ride-card">
                   <div className="card-top">
-                    <h3>Active Ride</h3>
-                    <span className="live-pulse">🔴 IN PROGRESS</span>
+                    <h3>Active Ride Location</h3>
+                    <span className="live-pulse">{activeRide ? '🔴 LIVE NAVIGATION' : '⚫ NO ACTIVE RIDE'}</span>
                   </div>
                   <div className="card-body">
                     {activeRide ? (
@@ -490,14 +533,33 @@ export default function CabDriverDashboard() {
                           </div>
                           <span className="eta-badge">{activeRide.eta}</span>
                         </div>
-                        <div className="route-summary">
-                          <div>📍 {activeRide.pickup}</div>
-                          <div>🏁 {activeRide.drop}</div>
+                        
+                        {/* LIVE GOOGLE MAPS PREVIEW CONTAINER */}
+                        <div className="google-map-mini-box">
+                          <iframe
+                            title="Google Maps Pickup Location"
+                            width="100%"
+                            height="160"
+                            style={{ border: 0, borderRadius: '14px', marginBottom: '0.5rem' }}
+                            loading="lazy"
+                            allowFullScreen
+                            src={`https://maps.google.com/maps?q=${encodeURIComponent(activeRide ? activeRide.pickup + ', Pune' : 'MG Road, Pune')}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
+                          ></iframe>
+                          <div className="map-overlay-text">
+                            <div>📍 Pickup: <strong>{activeRide.pickup}</strong></div>
+                            <div>🏁 Drop: <strong>{activeRide.drop}</strong></div>
+                          </div>
                         </div>
+
                         <div className="active-actions">
-                          <button className="btn-navigate" onClick={() => setShowNavigationModal(true)}>
-                            🗺️ Navigate
-                          </button>
+                          <a
+                            href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(activeRide ? activeRide.pickup + ', Pune' : 'MG Road, Pune')}&travelmode=driving`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="btn-navigate gmaps-btn"
+                          >
+                            🗺️ Google Maps App
+                          </a>
                           <button className="btn-finish" onClick={handleCompleteActiveRide}>
                             ✅ Complete Ride
                           </button>
@@ -1011,23 +1073,67 @@ export default function CabDriverDashboard() {
           <div className="cab-modal-overlay">
             <div className="cab-modal-card nav-modal">
               <div className="modal-header">
-                <h3>🗺️ GPS Navigation Mode</h3>
+                <h3>🗺️ Customer Pickup Location & Navigation</h3>
                 <button className="close-btn" onClick={() => setShowNavigationModal(false)}>✕</button>
               </div>
               <div className="modal-body text-center">
-                <div className="simulated-map-box">
-                  <div className="map-pin pickup-pin">📍 MG Road (Pickup)</div>
-                  <div className="map-route-line"></div>
-                  <div className="map-pin drop-pin">🏁 Airport (Drop)</div>
-                  <div className="map-car-icon">🚖 60 km/h</div>
+                
+                {/* LIVE GOOGLE MAPS EMBEDDED DISPLAY */}
+                <div className="gmaps-modal-container">
+                  <div className="map-hdr-banner">
+                    <span>🔴 GOOGLE MAPS LIVE NAVIGATION</span>
+                    <span>ETA: 2 MINS</span>
+                  </div>
+
+                  <iframe
+                    title="Google Maps Live Navigation Modal"
+                    width="100%"
+                    height="260"
+                    style={{ border: 0, borderRadius: '16px', marginBottom: '0.75rem', boxShadow: '0 4px 15px rgba(0,0,0,0.2)' }}
+                    loading="lazy"
+                    allowFullScreen
+                    src={`https://maps.google.com/maps?q=${encodeURIComponent(activeRide ? activeRide.pickup + ', Pune' : 'MG Road, Pune')}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
+                  ></iframe>
+
+                  <a
+                    href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(activeRide ? activeRide.pickup + ', Pune' : 'MG Road, Pune')}&travelmode=driving`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-gmaps-full-nav"
+                  >
+                    🗺️ Open Turn-by-Turn in Google Maps App ➔
+                  </a>
                 </div>
+
+                {/* TURN BY TURN NAV BANNER */}
                 <div className="nav-info-banner">
-                  <div className="nav-step">Turn Left in 200m towards MG Road Market</div>
-                  <div className="nav-meta">ETA: 2 mins • Distance: 0.8 km remaining</div>
+                  <div className="nav-step">⬅️ Turn Left in 150m towards MG Road Gate 2</div>
+                  <div className="nav-meta">Customer Rahul Sharma is waiting at Gate 2</div>
                 </div>
-                <button className="btn-close-nav" onClick={() => setShowNavigationModal(false)}>
-                  Return to Dashboard
-                </button>
+
+                {/* PASSENGER QUICK CONTACT BAR */}
+                {activeRide && (
+                  <div className="nav-customer-bar">
+                    <div className="nc-info">
+                      <strong>Rahul Sharma</strong>
+                      <span className="otp-pill">Ask OTP: {activeRide.otp}</span>
+                    </div>
+                    <div className="nc-actions">
+                      <a href="tel:+919876543210" className="btn-nc-call">📞 Call</a>
+                      <button className="btn-nc-chat" onClick={() => { setShowNavigationModal(false); setActiveTab('messages'); setMessagesTab('chat'); }}>💬 Chat</button>
+                    </div>
+                  </div>
+                )}
+
+                <div className="nav-modal-footer-btns">
+                  <button className="btn-complete-ride-nav" onClick={() => { setShowNavigationModal(false); handleCompleteActiveRide(); }}>
+                    ✅ Arrived & Complete Ride (₹420)
+                  </button>
+                  <button className="btn-close-nav" onClick={() => setShowNavigationModal(false)}>
+                    Return to Dashboard
+                  </button>
+                </div>
+
               </div>
             </div>
           </div>

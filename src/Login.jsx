@@ -136,6 +136,7 @@ export default function Login() {
     });
     const [passengerInfo, setPassengerInfo] = useState({
         fullName: '',
+        gender: 'male',
         emergencyContact1: '',
         emergencyContact2: ''
     });
@@ -276,21 +277,32 @@ export default function Login() {
             return;
         }
         const p1 = passengerInfo.emergencyContact1.replace(/\D/g, '');
-        const p2 = passengerInfo.emergencyContact2.replace(/\D/g, '');
         if (p1.length < 10) {
             setError('Please enter a valid 10-digit primary emergency contact number');
             return;
         }
-        if (p2.length < 10) {
-            setError('Please enter a valid 10-digit secondary emergency contact number');
-            return;
+        if (passengerInfo.gender === 'female') {
+            const p2 = passengerInfo.emergencyContact2.replace(/\D/g, '');
+            if (p2.length < 10) {
+                setError('For Women Safety Protection, please enter a valid 2nd emergency contact number');
+                return;
+            }
         }
         setError('');
         setLoading(true);
         setTimeout(() => {
             setLoading(false);
-            alert(`Passenger Profile Saved Successfully!\n\nWelcome ${passengerInfo.fullName}!\nRegistered Emergency Contacts:\n1. +91 ${p1}\n2. +91 ${p2}`);
-        }, 1200);
+            try {
+                localStorage.setItem('passengerProfile', JSON.stringify({
+                    fullName: passengerInfo.fullName,
+                    gender: passengerInfo.gender,
+                    emergencyContact1: passengerInfo.emergencyContact1,
+                    emergencyContact2: passengerInfo.gender === 'female' ? passengerInfo.emergencyContact2 : '',
+                    role: 'Passenger'
+                }));
+            } catch (err) {}
+            navigate('/passenger-dashboard');
+        }, 1000);
     };
 
     const handleMechanicInfoSubmit = (e) => {
@@ -316,8 +328,18 @@ export default function Login() {
         setLoading(true);
         setTimeout(() => {
             setLoading(false);
-            alert(`Mechanic Workshop Registered Successfully!\n\nOwner: ${mechanicInfo.fullName}\nShop: ${mechanicInfo.shopName}\nLocation: ${mechanicInfo.serviceLocation}\nPhone: +91 ${phoneDigits}`);
-        }, 1200);
+            try {
+                localStorage.setItem('mechanicProfile', JSON.stringify({
+                    fullName: mechanicInfo.fullName,
+                    shopName: mechanicInfo.shopName,
+                    serviceLocation: mechanicInfo.serviceLocation,
+                    emergencyContact: mechanicInfo.emergencyContact,
+                    specialty: mechanicInfo.specialty || 'General Auto Repair & Breakdown',
+                    role: 'Mechanic'
+                }));
+            } catch (err) {}
+            navigate('/mechanic-dashboard');
+        }, 1000);
     };
 
     return (
@@ -664,6 +686,52 @@ export default function Login() {
                                     <p>{t.passenger_info_sub}</p>
                                 </div>
 
+                                {/* GENDER SELECTION CARDS */}
+                                <div className="input-group">
+                                    <label>Select Gender</label>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginTop: '0.35rem' }}>
+                                        <button
+                                            type="button"
+                                            className={`role-card ${passengerInfo.gender === 'male' ? 'active' : ''}`}
+                                            onClick={() => setPassengerInfo({ ...passengerInfo, gender: 'male' })}
+                                            style={{
+                                                padding: '0.85rem',
+                                                borderRadius: '14px',
+                                                border: passengerInfo.gender === 'male' ? '2px solid #4f46e5' : '1px solid #cbd5e1',
+                                                background: passengerInfo.gender === 'male' ? '#e0e7ff' : '#ffffff',
+                                                fontWeight: '800',
+                                                color: passengerInfo.gender === 'male' ? '#3730a3' : '#475569',
+                                                cursor: 'pointer',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center'
+                                            }}
+                                        >
+                                            <span>Male</span>
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            className={`role-card ${passengerInfo.gender === 'female' ? 'active' : ''}`}
+                                            onClick={() => setPassengerInfo({ ...passengerInfo, gender: 'female' })}
+                                            style={{
+                                                padding: '0.85rem',
+                                                borderRadius: '14px',
+                                                border: passengerInfo.gender === 'female' ? '2px solid #ec4899' : '1px solid #cbd5e1',
+                                                background: passengerInfo.gender === 'female' ? '#fce7f3' : '#ffffff',
+                                                fontWeight: '800',
+                                                color: passengerInfo.gender === 'female' ? '#be185d' : '#475569',
+                                                cursor: 'pointer',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center'
+                                            }}
+                                        >
+                                            <span>Female</span>
+                                        </button>
+                                    </div>
+                                </div>
+
                                 <div className="input-group">
                                     <label htmlFor="passengerFullName">{t.full_name_label}</label>
                                     <div className="input-wrapper">
@@ -681,8 +749,11 @@ export default function Login() {
                                     </div>
                                 </div>
 
+                                {/* PRIMARY EMERGENCY CONTACT */}
                                 <div className="input-group">
-                                    <label htmlFor="emergencyContact1">{t.emergency_contact1_label}</label>
+                                    <label htmlFor="emergencyContact1">
+                                        {passengerInfo.gender === 'female' ? 'Primary Emergency Contact (1)' : 'Emergency Contact Number'}
+                                    </label>
                                     <div className="input-wrapper">
                                         <svg className="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                             <path d="M22 16.92V19.92C22.0011 20.1985 21.9441 20.4742 21.8325 20.7294C21.7209 20.9845 21.5573 21.2136 21.3521 21.4019C21.1468 21.5901 20.9046 21.7335 20.6407 21.8227C20.3769 21.9119 20.0974 21.9451 19.82 21.92C16.7428 21.5856 13.787 20.5341 11.19 18.85C8.77382 17.3147 6.72533 15.2662 5.19 12.85C3.49997 10.2412 2.44824 7.27099 2.12 4.18C2.09501 3.90347 2.12787 3.62476 2.2165 3.36162C2.30513 3.09849 2.44756 2.85669 2.63476 2.65162C2.82196 2.44655 3.0498 2.28271 3.30379 2.17052C3.55777 2.05833 3.83233 2.00026 4.11 2H7.11C7.59531 1.99522 8.06579 2.16708 8.43376 2.48353C8.80173 2.79999 9.04207 3.23945 9.11 3.72C9.23662 4.68007 9.47145 5.62273 9.81 6.53C9.94454 6.88792 9.97366 7.27691 9.89391 7.65088C9.81415 8.02485 9.62886 8.36811 9.36 8.64L8.09 9.91C9.51355 12.4135 11.5865 14.4864 14.09 15.91L15.36 14.64C15.6319 14.3711 15.9751 14.1858 16.3491 14.1061C16.7231 14.0263 17.1121 14.0555 17.47 14.19C18.3773 14.5286 19.3199 14.7634 20.28 14.89C20.7658 14.9585 21.2094 15.2032 21.5265 15.5775C21.8437 15.9518 22.0122 16.4296 22 16.92Z" />
@@ -690,28 +761,33 @@ export default function Login() {
                                         <input 
                                             type="tel" 
                                             id="emergencyContact1" 
-                                            placeholder={t.emergency_contact1_placeholder} 
+                                            placeholder="Enter 10-digit emergency contact number" 
                                             value={passengerInfo.emergencyContact1} 
                                             onChange={e => setPassengerInfo({ ...passengerInfo, emergencyContact1: e.target.value })} 
                                         />
                                     </div>
                                 </div>
 
-                                <div className="input-group">
-                                    <label htmlFor="emergencyContact2">{t.emergency_contact2_label}</label>
-                                    <div className="input-wrapper">
-                                        <svg className="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                            <path d="M22 16.92V19.92C22.0011 20.1985 21.9441 20.4742 21.8325 20.7294C21.7209 20.9845 21.5573 21.2136 21.3521 21.4019C21.1468 21.5901 20.9046 21.7335 20.6407 21.8227C20.3769 21.9119 20.0974 21.9451 19.82 21.92C16.7428 21.5856 13.787 20.5341 11.19 18.85C8.77382 17.3147 6.72533 15.2662 5.19 12.85C3.49997 10.2412 2.44824 7.27099 2.12 4.18C2.09501 3.90347 2.12787 3.62476 2.2165 3.36162C2.30513 3.09849 2.44756 2.85669 2.63476 2.65162C2.82196 2.44655 3.0498 2.28271 3.30379 2.17052C3.55777 2.05833 3.83233 2.00026 4.11 2H7.11C7.59531 1.99522 8.06579 2.16708 8.43376 2.48353C8.80173 2.79999 9.04207 3.23945 9.11 3.72C9.23662 4.68007 9.47145 5.62273 9.81 6.53C9.94454 6.88792 9.97366 7.27691 9.89391 7.65088C9.81415 8.02485 9.62886 8.36811 9.36 8.64L8.09 9.91C9.51355 12.4135 11.5865 14.4864 14.09 15.91L15.36 14.64C15.6319 14.3711 15.9751 14.1858 16.3491 14.1061C16.7231 14.0263 17.1121 14.0555 17.47 14.19C18.3773 14.5286 19.3199 14.7634 20.28 14.89C20.7658 14.9585 21.2094 15.2032 21.5265 15.5775C21.8437 15.9518 22.0122 16.4296 22 16.92Z" />
-                                        </svg>
-                                        <input 
-                                            type="tel" 
-                                            id="emergencyContact2" 
-                                            placeholder={t.emergency_contact2_placeholder} 
-                                            value={passengerInfo.emergencyContact2} 
-                                            onChange={e => setPassengerInfo({ ...passengerInfo, emergencyContact2: e.target.value })} 
-                                        />
+                                {/* SECONDARY EMERGENCY CONTACT ONLY FOR FEMALE */}
+                                {passengerInfo.gender === 'female' && (
+                                    <div className="input-group">
+                                        <label htmlFor="emergencyContact2" style={{ color: '#be185d', fontWeight: '700' }}>
+                                            🛡️ Secondary Emergency Contact (2) — Women Safety
+                                        </label>
+                                        <div className="input-wrapper" style={{ borderColor: '#f472b6' }}>
+                                            <svg className="input-icon" viewBox="0 0 24 24" fill="none" stroke="#ec4899" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                <path d="M22 16.92V19.92C22.0011 20.1985 21.9441 20.4742 21.8325 20.7294C21.7209 20.9845 21.5573 21.2136 21.3521 21.4019C21.1468 21.5901 20.9046 21.7335 20.6407 21.8227C20.3769 21.9119 20.0974 21.9451 19.82 21.92C16.7428 21.5856 13.787 20.5341 11.19 18.85C8.77382 17.3147 6.72533 15.2662 5.19 12.85C3.49997 10.2412 2.44824 7.27099 2.12 4.18C2.09501 3.90347 2.12787 3.62476 2.2165 3.36162C2.30513 3.09849 2.44756 2.85669 2.63476 2.65162C2.82196 2.44655 3.0498 2.28271 3.30379 2.17052C3.55777 2.05833 3.83233 2.00026 4.11 2H7.11C7.59531 1.99522 8.06579 2.16708 8.43376 2.48353C8.80173 2.79999 9.04207 3.23945 9.11 3.72C9.23662 4.68007 9.47145 5.62273 9.81 6.53C9.94454 6.88792 9.97366 7.27691 9.89391 7.65088C9.81415 8.02485 9.62886 8.36811 9.36 8.64L8.09 9.91C9.51355 12.4135 11.5865 14.4864 14.09 15.91L15.36 14.64C15.6319 14.3711 15.9751 14.1858 16.3491 14.1061C16.7231 14.0263 17.1121 14.0555 17.47 14.19C18.3773 14.5286 19.3199 14.7634 20.28 14.89C20.7658 14.9585 21.2094 15.2032 21.5265 15.5775C21.8437 15.9518 22.0122 16.4296 22 16.92Z" />
+                                            </svg>
+                                            <input 
+                                                type="tel" 
+                                                id="emergencyContact2" 
+                                                placeholder="Enter 10-digit 2nd emergency contact" 
+                                                value={passengerInfo.emergencyContact2} 
+                                                onChange={e => setPassengerInfo({ ...passengerInfo, emergencyContact2: e.target.value })} 
+                                            />
+                                        </div>
                                     </div>
-                                </div>
+                                )}
 
                                 {error && <div className="error-message" style={{color: 'var(--error-color)', fontSize: '0.875rem', marginTop: '0.25rem'}}>{error}</div>}
 
@@ -724,7 +800,7 @@ export default function Login() {
                                     )}
                                 </button>
 
-                                <div style={{ textAlign: 'center', marginTop: '1rem' }}>
+                                 <div style={{ textAlign: 'center', marginTop: '1rem' }}>
                                     <button type="button" className="back-role-btn" onClick={() => setStep(3)}>
                                         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                                             <path d="M19 12H5M12 19l-7-7 7-7"/>
