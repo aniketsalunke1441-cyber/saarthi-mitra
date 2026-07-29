@@ -261,7 +261,11 @@ export default function Login() {
                     phone: phone || '+91 9876543210'
                 }));
             } catch (err) {}
-            navigate('/dashboard');
+            if (selectedRole === 'Cab Driver') {
+                navigate('/cab-driver-dashboard');
+            } else {
+                navigate('/dashboard');
+            }
         }, 1000);
     };
 

@@ -207,80 +207,161 @@ export default function Dashboard() {
   const [translatedText, setTranslatedText] = useState('');
   const [targetLang, setTargetLang] = useState('hi');
   const [isListening, setIsListening] = useState(false);
+  const [voiceError, setVoiceError] = useState('');
+  const [isTranslating, setIsTranslating] = useState(false);
   const recognitionRef = useRef(null);
 
-  const translationDict = {
-    hi: { name: 'Hindi', flag: '🇮🇳', samples: {
-      'hello': 'नमस्ते', 'help': 'मदद', 'breakdown': 'गाड़ी खराब हो गई', 'tyre': 'टायर', 'mechanic': 'मैकेनिक',
-      'engine': 'इंजन', 'fuel': 'ईंधन', 'hospital': 'अस्पताल', 'police': 'पुलिस', 'accident': 'दुर्घटना',
-      'where is the nearest mechanic': 'सबसे नजदीकी मैकेनिक कहाँ है', 'my truck broke down': 'मेरा ट्रक खराब हो गया',
-      'i need help': 'मुझे मदद चाहिए', 'tyre puncture': 'टायर पंक्चर', 'oil change': 'ऑयल बदलवाना है',
-      'brake not working': 'ब्रेक काम नहीं कर रहा', 'engine overheating': 'इंजन गरम हो रहा है',
-      'need towing': 'टोइंग चाहिए', 'send ambulance': 'एम्बुलेंस भेजो', 'thank you': 'धन्यवाद'
+  const wordDicts = {
+    hi: { name: 'Hindi', flag: '\u{1F1EE}\u{1F1F3}', words: {
+      'hello':'नमस्ते','hi':'नमस्ते','hey':'अरे','good':'अच्छा','morning':'सुबह','night':'रात','evening':'शाम',
+      'help':'मदद','need':'चाहिए','want':'चाहिए','please':'कृपया','yes':'हां','no':'नहीं','ok':'ठीक है',
+      'i':'मैं','my':'मेरा','me':'मुझे','we':'हम','you':'आप','your':'आपका','is':'है','are':'हैं',
+      'the':'','a':'एक','an':'एक','this':'यह','that':'वह','it':'यह','was':'था','not':'नहीं',
+      'where':'कहाँ','what':'क्या','how':'कैसे','when':'कब','who':'कौन','which':'कौन सा',
+      'truck':'ट्रक','vehicle':'वाहन','car':'गाड़ी','bus':'बस','bike':'बाइक',
+      'engine':'इंजन','tyre':'टायर','tire':'टायर','brake':'ब्रेक','oil':'तेल','fuel':'ईंधन',
+      'petrol':'पेट्रोल','diesel':'डीज़ल','gas':'गैस','water':'पानी','battery':'बैटरी',
+      'breakdown':'ब्रेकडाउन','broke':'खराब','broken':'टूटा','down':'बंद','stop':'रुको','stopped':'रुक गया',
+      'puncture':'पंक्चर','flat':'फ्लैट','burst':'फट गया','leak':'लीक','smoke':'धुआँ','noise':'आवाज़',
+      'repair':'मरम्मत','fix':'ठीक करो','change':'बदलो','replace':'बदलो','check':'जांच',
+      'mechanic':'मैकेनिक','garage':'गैरेज','shop':'दुकान','service':'सर्विस','station':'स्टेशन',
+      'nearest':'नजदीकी','near':'पास','nearby':'आसपास','close':'पास','far':'दूर','find':'ढूंढो',
+      'road':'सड़क','highway':'हाईवे','bridge':'पुल','toll':'टोल','turn':'मोड़',
+      'left':'बाएं','right':'दाएं','straight':'सीधा','back':'पीछे','front':'आगे',
+      'hospital':'अस्पताल','police':'पुलिस','ambulance':'एम्बुलेंस','fire':'आग','accident':'दुर्घटना','emergency':'आपातकाल',
+      'call':'फ़ोन करो','phone':'फ़ोन','send':'भेजो','come':'आओ','go':'जाओ','fast':'जल्दी',
+      'food':'खाना','eat':'खाओ','drink':'पीओ','rest':'आराम','sleep':'नींद','tired':'थका हुआ',
+      'hot':'गरम','cold':'ठंडा','big':'बड़ा','small':'छोटा','new':'नया','old':'पुराना',
+      'money':'पैसा','pay':'भुगतान','cost':'कीमत','price':'दाम','expensive':'महंगा','cheap':'सस्ता',
+      'thank':'धन्यवाद','thanks':'धन्यवाद','sorry':'माफ़ करो','wait':'रुको','hurry':'जल्दी करो',
+      'overheating':'गरम हो रहा','working':'काम कर रहा','towing':'टोइंग','problem':'समस्या','issue':'समस्या',
+      'can':'सकते','cannot':'नहीं कर सकते','will':'करेंगे','have':'है','has':'है','had':'था',
+      'very':'बहुत','much':'बहुत','many':'बहुत','some':'कुछ','all':'सभी','one':'एक','two':'दो',
+      'here':'यहाँ','there':'वहाँ','now':'अब','today':'आज','tomorrow':'कल','time':'समय',
+      'open':'खुला','closed':'बंद','start':'शुरू','running':'चल रहा','moving':'चल रहा',
+      'dangerous':'खतरनाक','safe':'सुरक्षित','careful':'सावधान','slow':'धीरे','speed':'गति',
+      'driver':'ड्राइवर','passenger':'यात्री','load':'माल','heavy':'भारी','light':'हल्का',
+      'dhaba':'ढाबा','parking':'पार्किंग','hotel':'होटल'
     }},
-    mr: { name: 'Marathi', flag: '🇮🇳', samples: {
-      'hello': 'नमस्कार', 'help': 'मदत', 'breakdown': 'गाडी बंद पडली', 'tyre': 'टायर', 'mechanic': 'मेकॅनिक',
-      'engine': 'इंजिन', 'fuel': 'इंधन', 'hospital': 'रुग्णालय', 'police': 'पोलीस', 'accident': 'अपघात',
-      'where is the nearest mechanic': 'सर्वात जवळचा मेकॅनिक कुठे आहे', 'my truck broke down': 'माझा ट्रक बंद पडला',
-      'i need help': 'मला मदत हवी आहे', 'tyre puncture': 'टायर पंक्चर', 'oil change': 'ऑइल बदलायचे आहे',
-      'brake not working': 'ब्रेक काम करत नाही', 'engine overheating': 'इंजिन गरम होत आहे',
-      'need towing': 'टोइंग हवे', 'send ambulance': 'रुग्णवाहिका पाठवा', 'thank you': 'धन्यवाद'
+    mr: { name: 'Marathi', flag: '\u{1F1EE}\u{1F1F3}', words: {
+      'hello':'नमस्कार','hi':'नमस्कार','hey':'अरे','good':'चांगले','morning':'सकाळ','night':'रात्र',
+      'help':'मदत','need':'हवे','want':'पाहिजे','please':'कृपया','yes':'हो','no':'नाही','ok':'ठीक आहे',
+      'i':'मी','my':'माझा','me':'मला','we':'आम्ही','you':'तुम्ही','your':'तुमचा','is':'आहे','are':'आहेत',
+      'the':'','a':'एक','this':'हे','that':'ते','it':'हे','was':'होता','not':'नाही',
+      'where':'कुठे','what':'काय','how':'कसे','when':'केव्हा','who':'कोण',
+      'truck':'ट्रक','vehicle':'वाहन','car':'गाडी','engine':'इंजिन','tyre':'टायर','tire':'टायर',
+      'brake':'ब्रेक','oil':'तेल','fuel':'इंधन','water':'पाणी','battery':'बॅटरी',
+      'breakdown':'बंद पडले','broke':'बिघडले','broken':'तुटलेले','stop':'थांबा','stopped':'थांबले',
+      'puncture':'पंक्चर','burst':'फुटला','smoke':'धूर','noise':'आवाज',
+      'repair':'दुरुस्ती','fix':'ठीक करा','change':'बदला','check':'तपासा',
+      'mechanic':'मेकॅनिक','garage':'गॅरेज','shop':'दुकान','near':'जवळ','nearest':'जवळचा','find':'शोधा',
+      'road':'रस्ता','highway':'महामार्ग','hospital':'रुग्णालय','police':'पोलीस','ambulance':'रुग्णवाहिका',
+      'accident':'अपघात','emergency':'आपत्कालीन','call':'फोन करा','send':'पाठवा','come':'या','go':'जा','fast':'लवकर',
+      'food':'जेवण','rest':'विश्रांती','thank':'धन्यवाद','thanks':'धन्यवाद','sorry':'माफ करा','wait':'थांबा',
+      'hot':'गरम','cold':'थंड','big':'मोठा','small':'लहान','problem':'समस्या',
+      'driver':'चालक','heavy':'जड','dhaba':'ढाबा','parking':'पार्किंग'
     }},
-    ta: { name: 'Tamil', flag: '🇮🇳', samples: {
-      'hello': 'வணக்கம்', 'help': 'உதவி', 'breakdown': 'வண்டி கெட்டுப்போச்சு', 'tyre': 'டயர்', 'mechanic': 'மெக்கானிக்',
-      'engine': 'இயந்திரம்', 'fuel': 'எரிபொருள்', 'hospital': 'மருத்துவமனை', 'police': 'காவல்', 'accident': 'விபத்து',
-      'i need help': 'எனக்கு உதவி தேவை', 'tyre puncture': 'டயர் பஞ்சர்', 'thank you': 'நன்றி'
+    ta: { name: 'Tamil', flag: '\u{1F1EE}\u{1F1F3}', words: {
+      'hello':'வணக்கம்','hi':'வணக்கம்','help':'உதவி','need':'வேண்டும்','please':'தயவுசெய்து',
+      'yes':'ஆம்','no':'இல்லை','i':'நான்','my':'என்','where':'எங்கே','what':'என்ன','how':'எப்படி',
+      'truck':'லாரி','vehicle':'வாகனம்','engine':'இயந்திரம்','tyre':'டயர்','tire':'டயர்',
+      'brake':'பிரேக்','oil':'எண்ணெய்','fuel':'எரிபொருள்','water':'தண்ணீர்','battery':'பேட்டரி',
+      'breakdown':'கெட்டுப்போச்சு','puncture':'பஞ்சர்','repair':'பழுது','fix':'சரி செய்',
+      'mechanic':'மெக்கானிக்','shop':'கடை','near':'அருகில்','nearest':'அருகிலுள்ள',
+      'road':'சாலை','highway':'நெடுஞ்சாலை','hospital':'மருத்துவமனை','police':'காவல்','ambulance':'ஆம்புலன்ஸ்',
+      'accident':'விபத்து','emergency':'அவசரம்','call':'அழை','send':'அனுப்பு','come':'வா','go':'போ',
+      'fast':'வேகமாக','food':'உணவு','rest':'ஓய்வு','thank':'நன்றி','thanks':'நன்றி','sorry':'மன்னிக்கவும்',
+      'problem':'பிரச்சனை','stop':'நிறுத்து','wait':'காத்திரு','driver':'டிரைவர்'
     }},
-    te: { name: 'Telugu', flag: '🇮🇳', samples: {
-      'hello': 'నమస్కారం', 'help': 'సహాయం', 'breakdown': 'వాహనం చెడిపోయింది', 'tyre': 'టైరు', 'mechanic': 'మెకానిక్',
-      'engine': 'ఇంజన్', 'fuel': 'ఇంధనం', 'hospital': 'ఆసుపత్రి', 'police': 'పోలీసు', 'accident': 'ప్రమాదం',
-      'i need help': 'నాకు సహాయం కావాలి', 'tyre puncture': 'టైరు పంక్చర్', 'thank you': 'ధన్యవాదాలు'
+    te: { name: 'Telugu', flag: '\u{1F1EE}\u{1F1F3}', words: {
+      'hello':'నమస్కారం','hi':'నమస్కారం','help':'సహాయం','need':'కావాలి','please':'దయచేసి',
+      'yes':'అవును','no':'కాదు','i':'నేను','my':'నా','where':'ఎక్కడ','what':'ఏమిటి','how':'ఎలా',
+      'truck':'ట్రక్కు','vehicle':'వాహనం','engine':'ఇంజన్','tyre':'టైరు','tire':'టైరు',
+      'brake':'బ్రేక్','oil':'నూనె','fuel':'ఇంధనం','water':'నీళ్ళు','battery':'బ్యాటరీ',
+      'breakdown':'చెడిపోయింది','puncture':'పంక్చర్','repair':'మరమ్మత్తు','fix':'బాగుచేయి',
+      'mechanic':'మెకానిక్','shop':'షాపు','near':'దగ్గర','nearest':'సమీపంలో',
+      'road':'రోడ్డు','highway':'హైవే','hospital':'ఆసుపత్రి','police':'పోలీసు','ambulance':'అంబులెన్స్',
+      'accident':'ప్రమాదం','emergency':'అత్యవసరం','call':'కాల్ చేయి','send':'పంపు','come':'రా','go':'వెళ్ళు',
+      'fast':'వేగంగా','food':'ఆహారం','rest':'విశ్రాంతి','thank':'ధన్యవాదాలు','thanks':'ధన్యవాదాలు',
+      'problem':'సమస్య','stop':'ఆపు','wait':'ఆగు','driver':'డ్రైవర్'
     }},
-    kn: { name: 'Kannada', flag: '🇮🇳', samples: {
-      'hello': 'ನಮಸ್ಕಾರ', 'help': 'ಸಹಾಯ', 'breakdown': 'ವಾಹನ ಕೆಟ್ಟಿದೆ', 'tyre': 'ಟೈರ್', 'mechanic': 'ಮೆಕ್ಯಾನಿಕ್',
-      'engine': 'ಇಂಜಿನ್', 'fuel': 'ಇಂಧನ', 'hospital': 'ಆಸ್ಪತ್ರೆ', 'police': 'ಪೊಲೀಸ್', 'accident': 'ಅಪಘಾತ',
-      'i need help': 'ನನಗೆ ಸಹಾಯ ಬೇಕು', 'tyre puncture': 'ಟೈರ್ ಪಂಕ್ಚರ್', 'thank you': 'ಧನ್ಯವಾದಗಳು'
+    kn: { name: 'Kannada', flag: '\u{1F1EE}\u{1F1F3}', words: {
+      'hello':'ನಮಸ್ಕಾರ','hi':'ನಮಸ್ಕಾರ','help':'ಸಹಾಯ','need':'ಬೇಕು','please':'ದಯವಿಟ್ಟು',
+      'yes':'ಹೌದು','no':'ಇಲ್ಲ','i':'ನಾನು','my':'ನನ್ನ','where':'ಎಲ್ಲಿ','what':'ಏನು','how':'ಹೇಗೆ',
+      'truck':'ಟ್ರಕ್','vehicle':'ವಾಹನ','engine':'ಇಂಜಿನ್','tyre':'ಟೈರ್','tire':'ಟೈರ್',
+      'brake':'ಬ್ರೇಕ್','oil':'ಎಣ್ಣೆ','fuel':'ಇಂಧನ','water':'ನೀರು','battery':'ಬ್ಯಾಟರಿ',
+      'breakdown':'ಕೆಟ್ಟಿದೆ','puncture':'ಪಂಕ್ಚರ್','repair':'ರಿಪೇರಿ','fix':'ಸರಿಮಾಡು',
+      'mechanic':'ಮೆಕ್ಯಾನಿಕ್','shop':'ಅಂಗಡಿ','near':'ಹತ್ತಿರ','nearest':'ಹತ್ತಿರದ',
+      'road':'ರಸ್ತೆ','highway':'ಹೆದ್ದಾರಿ','hospital':'ಆಸ್ಪತ್ರೆ','police':'ಪೊಲೀಸ್','ambulance':'ಆಂಬ್ಯುಲೆನ್ಸ್',
+      'accident':'ಅಪಘಾತ','emergency':'ತುರ್ತು','call':'ಕರೆ ಮಾಡಿ','send':'ಕಳುಹಿಸಿ','come':'ಬಾ','go':'ಹೋಗು',
+      'fast':'ವೇಗವಾಗಿ','food':'ಊಟ','rest':'ವಿಶ್ರಾಂತಿ','thank':'ಧನ್ಯವಾದ','thanks':'ಧನ್ಯವಾದ',
+      'problem':'ಸಮಸ್ಯೆ','stop':'ನಿಲ್ಲಿಸು','wait':'ನಿಲ್ಲು','driver':'ಚಾಲಕ'
     }}
   };
 
-  const handleTranslate = (text) => {
-    const lower = text.toLowerCase().trim();
-    const dict = translationDict[targetLang]?.samples || {};
-    if (dict[lower]) {
-      setTranslatedText(dict[lower]);
-      return;
-    }
-    // Try partial match
-    for (const [key, val] of Object.entries(dict)) {
-      if (lower.includes(key) || key.includes(lower)) {
-        setTranslatedText(val);
-        return;
+  const handleTranslate = async (text) => {
+    if (!text || !text.trim()) return;
+    setTranslatedText('');
+    setIsTranslating(true);
+    setVoiceError('');
+
+    try {
+      const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|${targetLang}`);
+      const data = await res.json();
+      
+      if (data && data.responseData && data.responseData.translatedText) {
+        setTranslatedText(data.responseData.translatedText);
+      } else {
+        throw new Error("Translation API failed");
       }
+    } catch (err) {
+      console.error("Translation error:", err);
+      // Fallback to word-by-word dictionary if API fails or rate limits
+      const words = text.toLowerCase().trim().split(/\s+/);
+      const dict = wordDicts[targetLang]?.words || {};
+      const translated = words.map(word => {
+        const clean = word.replace(/[^a-z]/g, '');
+        if (!clean) return '';
+        return dict[clean] !== undefined ? (dict[clean] || '') : word;
+      }).filter(w => w !== '').join(' ');
+      setTranslatedText(translated || text);
+    } finally {
+      setIsTranslating(false);
     }
-    // Fallback: show transliteration message
-    setTranslatedText(`[${translationDict[targetLang]?.name}] ${text}`);
   };
 
   const startVoiceRecognition = () => {
+    setVoiceError('');
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      setVoiceInputText("Speech recognition not supported in this browser.");
+      setVoiceError('Speech recognition not supported. Please use Chrome or Edge browser.');
       return;
+    }
+    if (recognitionRef.current) {
+      try { recognitionRef.current.abort(); } catch (_e) { /* ignore */ }
     }
     const recognition = new SpeechRecognition();
     recognition.lang = 'en-IN';
     recognition.interimResults = false;
+    recognition.continuous = false;
     recognition.maxAlternatives = 1;
-    recognition.onstart = () => setIsListening(true);
+    recognition.onstart = () => { setIsListening(true); setVoiceError(''); };
     recognition.onresult = (event) => {
       const spoken = event.results[0][0].transcript;
       setVoiceInputText(spoken);
       handleTranslate(spoken);
+      setIsListening(false);
     };
-    recognition.onerror = () => setIsListening(false);
+    recognition.onerror = (event) => {
+      setIsListening(false);
+      if (event.error === 'no-speech') setVoiceError('No speech detected. Tap mic and speak clearly.');
+      else if (event.error === 'not-allowed') setVoiceError('Microphone blocked. Allow mic permission in browser settings.');
+      else if (event.error === 'network') setVoiceError('Network error. Internet connection required.');
+      else setVoiceError('Voice error: ' + event.error + '. Try again.');
+    };
     recognition.onend = () => setIsListening(false);
     recognitionRef.current = recognition;
-    recognition.start();
+    try { recognition.start(); } catch (_e) { setVoiceError('Could not start mic. Try again.'); setIsListening(false); }
   };
 
   const handleResendInAppAlert = (mechanicName) => {
@@ -979,7 +1060,7 @@ export default function Dashboard() {
                 🌐 Translate To:
               </label>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-                {Object.entries(translationDict).map(([code, info]) => (
+                {Object.entries(wordDicts).map(([code, info]) => (
                   <button
                     key={code}
                     onClick={() => { setTargetLang(code); if (voiceInputText) handleTranslate(voiceInputText); }}
@@ -1000,6 +1081,13 @@ export default function Dashboard() {
                 ))}
               </div>
             </div>
+
+            {/* Error Message */}
+            {voiceError && (
+              <div style={{ background: '#fef2f2', border: '1px solid #fca5a5', padding: '0.75rem', borderRadius: '12px', marginBottom: '1rem', color: '#b91c1c', fontSize: '0.85rem', fontWeight: '600' }}>
+                {voiceError}
+              </div>
+            )}
 
             {/* Mic Button */}
             <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
@@ -1036,7 +1124,13 @@ export default function Dashboard() {
                 <input
                   type="text"
                   value={voiceInputText}
-                  onChange={(e) => setVoiceInputText(e.target.value)}
+                  onChange={(e) => {
+                    setVoiceInputText(e.target.value);
+                    if (!e.target.value) setTranslatedText('');
+                  }}
+                  onKeyUp={(e) => {
+                    if (e.key === 'Enter') handleTranslate(voiceInputText);
+                  }}
                   placeholder="e.g., my truck broke down"
                   style={{
                     flex: 1,
@@ -1082,13 +1176,13 @@ export default function Dashboard() {
             )}
 
             {/* Translated Output Box */}
-            {translatedText && (
+            {(translatedText || isTranslating) && (
               <div style={{ background: '#ecfdf5', border: '1px solid #6ee7b7', padding: '1rem', borderRadius: '14px' }}>
                 <div style={{ fontSize: '0.72rem', fontWeight: '700', color: '#059669', marginBottom: '0.3rem', textTransform: 'uppercase' }}>
-                  🌐 Translation ({translationDict[targetLang]?.name})
+                  🌐 Translation ({wordDicts[targetLang]?.name})
                 </div>
                 <div style={{ fontSize: '1.2rem', fontWeight: '700', color: '#065f46' }}>
-                  {translatedText}
+                  {isTranslating ? 'Translating...' : translatedText}
                 </div>
               </div>
             )}
