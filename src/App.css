@@ -182,7 +182,7 @@
   gap: 2px;
 }
 
-.logo-container {
+.logo-container, .sos-container {
   position: absolute;
   bottom: -40px;
   left: 50%;
@@ -194,23 +194,65 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  z-index: 10;
+  box-shadow: 0 4px 18px rgba(220, 38, 38, 0.35);
+  z-index: 50;
 }
 
-.logo-wrapper {
-  width: 100%;
-  height: 100%;
+.sos-btn {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #991b1b 100%);
+  border: 3px solid #ffffff;
+  color: white;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.3);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  user-select: none;
 }
 
-.logo-img {
-  width: 130%;
-  height: 130%;
-  object-fit: contain;
-  border-radius: 50%;
+.sos-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 18px rgba(220, 38, 38, 0.6), inset 0 2px 4px rgba(255, 255, 255, 0.4);
+}
+
+.sos-btn:active {
+  transform: scale(0.95);
+}
+
+.sos-text {
+  font-size: 1.3rem;
+  font-weight: 900;
+  letter-spacing: 1px;
+  line-height: 1;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.sos-subtext {
+  font-size: 0.65rem;
+  font-weight: 700;
+  margin-top: 2px;
+  opacity: 0.9;
+  letter-spacing: 0.5px;
+}
+
+.sos-active {
+  animation: sosPulse 0.6s infinite alternate !important;
+}
+
+@keyframes sosPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.8), 0 0 20px rgba(239, 68, 68, 0.8);
+    transform: scale(1);
+  }
+  100% {
+    box-shadow: 0 0 0 20px rgba(239, 68, 68, 0), 0 0 35px rgba(239, 68, 68, 1);
+    transform: scale(1.08);
+  }
 }
 
 .dashboard-content {
