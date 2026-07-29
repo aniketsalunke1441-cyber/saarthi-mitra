@@ -1,92 +1,315 @@
-import { useState, useRef } from 'react'
-import './App.css'
+import { useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import './Dashboard.css';
 
-const translations = {
+const i18n = {
   en: {
-    greeting: "Hi,",
-    idPrefix: "ID -",
-    role: "Driver",
-    tier: "Bronze",
-    searchPlaceholder: "Search Jobs",
-    profileTitle: "Edit Profile Details",
-    saveBtn: "Save Profile Details",
-    cancelBtn: "Cancel",
-    editBtn: "Edit Profile",
-    nameLabel: "Full Name",
-    phoneLabel: "Phone Number",
-    emailLabel: "Email Address",
-    licenseLabel: "Driving License No.",
-    cityLabel: "City / Location",
-    vehicleLabel: "Vehicle Type",
-    statusSaved: "Profile updated successfully!",
+    brand_subtitle: "Highway Assistance & Driver Safety Network",
+    on_duty: "On Duty / Live Tracking",
+    welcome: "Welcome,",
+    role_driver: "Truck Driver",
+    sos_title: "EMERGENCY HIGHWAY SOS",
+    sos_desc: "Tap in case of accident, breakdown, medical emergency, or security alert.",
+    press_sos: "SOS",
+    press_sub: "PRESS NOW",
+    sos_contacts_set: "Emergency Contacts Active",
+    setup_sos: "Configure SOS Numbers",
+
+    // Stats
+    stat_safety: "Safety Score",
+    // 4 Helping Options
+    help_breakdown_title: "Breakdown Help",
+    help_breakdown_sub: "24/7 Mobile Towing & Engine Service",
+    help_tyre_title: "Tyre Repair",
+    help_tyre_sub: "Mobile Puncture & Air Pressure",
+    help_mechanic_title: "Mechanic Locator",
+    help_mechanic_sub: "Find Nearby Verified Mechanics",
+    help_voice_title: "AI Voice Helper",
+    help_voice_sub: "Tap to Speak Voice Commands",
+
+    // Route
+    live_route: "Active Transit Route",
+    route_details: "NH 48 Highway Corridor",
+    distance_remaining: "45 km remaining to destination",
+    fuel_level: "Fuel / Battery",
+    engine_temp: "Engine Temp",
+    tyre_pressure: "Tyre Pressure",
+    rest_break: "Next Rest Break",
+
+    // Actions
+    quick_hub: "Essential Services & Quick Actions",
+    mechanic_service: "Find Highway Mechanic",
+    mechanic_sub: "Mobile vans, tyre repair & towing",
+    fuel_service: "Pumps & Charging",
+    fuel_sub: "24/7 Diesel pumps & EV chargers",
+    parking_service: "Truck Rest Stops",
+    parking_sub: "CCTV parking, dhabas & lodging",
+    medical_service: "Emergency Hospital",
+    medical_sub: "Trauma centers & ambulance support",
+    doc_service: "E-Way Bills & Docs",
+    doc_sub: "Digital trip permits & RC check",
+    contact_service: "SOS Contact Setup",
+    contact_sub: "Update family & fleet emergency phone",
+
+    // Sidebar
+    helpline_title: "24/7 Emergency Helplines",
+    police: "Highway Police Dispatch",
+    ambulance: "National Highway Ambulance",
+    crane: "SaarthiMitra Towing Crane",
+    toll: "NHAI Highway Toll Helpline",
+
+    // Modals
+    sos_modal_title: "EMERGENCY DIRECT MESSAGE DISPATCHED TO MECHANICS!",
+    sos_alerting: "Transmitting live GPS location & breakdown message directly to 3 nearby highway mechanics...",
+    sos_success_badge: "💬 Emergency Direct Message Sent to 3 Mechanics Instantly!",
+    gps_location_label: "Live Breakdown GPS Location:",
+    message_payload_label: "Dispatched Emergency Message:",
+    notified_mechanics_label: "Local Mechanics Notified (In-App Dispatch):",
+    resend_in_app: "Re-send Alert",
+    call_now: "Call Mechanic",
+    siren_on: "Stop Emergency Siren Audio",
+    siren_off: "Play Emergency Siren Audio",
+    close: "Close Emergency Alert",
+    mechanic_modal_title: "Nearby Verified Highway Mechanics",
+    edit_profile: "Edit Driver Profile",
+    save: "Save Changes",
+    logout: "Log Out"
   },
   mr: {
-    greeting: "नमस्कार,",
-    idPrefix: "आयडी -",
-    role: "चालक",
-    tier: "कांस्य",
-    searchPlaceholder: "नोकरी शोधा",
-    profileTitle: "प्रोफाइल माहिती संपादित करा",
-    saveBtn: "माहिती जतन करा",
-    cancelBtn: "रद्द करा",
-    editBtn: "प्रोफाइल संपादित करा",
-    nameLabel: "पूर्ण नाव",
-    phoneLabel: "फोन नंबर",
-    emailLabel: "ईमेल पत्ता",
-    licenseLabel: "ड्रायव्हिंग लायसन्स नंबर",
-    cityLabel: "शहर / ठिकाण",
-    vehicleLabel: "वाहनाचा प्रकार",
-    statusSaved: "प्रोफाइल यशस्वीरित्या अपडेट केले!",
+    brand_subtitle: "महामार्ग सहाय्य आणि ड्रायव्हर सुरक्षा नेटवर्क",
+    on_duty: "ड्युटीवर / थेट ट्रॅकिंग चालू",
+    welcome: "स्वागत आहे,",
+    role_driver: "ट्रक चालक",
+    sos_title: "आपत्कालीन हायवे SOS",
+    sos_desc: "अपघात, ब्रेकडाऊन, वैद्यकीय आणीबाणी किंवा सुरक्षेसाठी दाबा.",
+    press_sos: "SOS",
+    press_sub: "आत्ता दाबा",
+    sos_contacts_set: "आपत्कालीन संपर्क सक्रिय",
+    setup_sos: "SOS नंबर जोडा",
+
+    // 4 Helping Options
+    help_breakdown_title: "ब्रेकडाऊन मदत",
+    help_breakdown_sub: "२४/७ टोइंग आणि इंजिन दुरुस्ती",
+    help_tyre_title: "टायर रिपेअर",
+    help_tyre_sub: "मोबाइल पंक्चर आणि हवा दाब सेवा",
+    help_mechanic_title: "मेकॅनिक लोकेटर",
+    help_mechanic_sub: "जवळचे सत्यापित मेकॅनिक्स शोधा",
+    help_voice_title: "AI व्हॉइस असिस्टंट",
+    help_voice_sub: "हायवे व्हॉइस कमांड वापरा",
+
+    // Route
+    live_route: "सक्रिय प्रवास मार्ग",
+    route_details: "NH 48 हायवे कॉरिडॉर",
+    distance_remaining: "गंतव्यस्थानापर्यंत ४५ किमी बाकी",
+    fuel_level: "इंधन / बॅटरी",
+    engine_temp: "इंजिन तापमान",
+    tyre_pressure: "टायरचा दाब",
+    rest_break: "पुढील विश्रांती",
+
+    // Actions
+    quick_hub: "महत्त्वाच्या सेवा आणि जलद कृती",
+    mechanic_service: "हायवे मेकॅनिक शोधा",
+    mechanic_sub: "मोबाइल व्हॅन, टायर रिपेअर आणि टोइंग",
+    fuel_service: "पंप आणि चार्जिंग",
+    fuel_sub: "२४/७ डिझेल पंप आणि EV चार्जर",
+    parking_service: "ट्रक विश्रांतीगृह",
+    parking_sub: "CCTV पार्किंग, ढाबा आणि राहण्याची सोय",
+    medical_service: "आपत्कालीन रुग्णालय",
+    medical_sub: "ट्रॉमा सेंटर आणि रुग्णवाहिका",
+    doc_service: "ई-वे बिल आणि कागदपत्रे",
+    doc_sub: "डिजिटल ट्रिप परवाने आणि आरसी तपासणी",
+    contact_service: "SOS संपर्क सेटअप",
+    contact_sub: "कुटुंब आणि ताफा आपत्कालीन नंबर अपडेट करा",
+
+    // Sidebar
+    helpline_title: "२४/७ आपत्कालीन हेल्पलाइन",
+    police: "हायवे पोलिस टीम",
+    ambulance: "राष्ट्रीय महामार्ग रुग्णवाहिका",
+    crane: "सारथीमित्र टोइंग क्रेन",
+    toll: "NHAI टोल हेल्पलाइन",
+
+    // Modals
+    sos_modal_title: "मेकॅनिक्सना आपत्कालीन थेट संदेश पाठवला!",
+    sos_alerting: "जवळच्या ३ हायवे मेकॅनिक्सना ॲपमध्ये आपत्कालीन मेसेज पाठवत आहे...",
+    sos_success_badge: "💬 ३ स्थानिक मेकॅनिक्सना आपत्कालीन थेट संदेश पाठवला आहे!",
+    gps_location_label: "थेट ब्रेकडाऊन GPS स्थान:",
+    message_payload_label: "पाठवलेला आपत्कालीन मेसेज:",
+    notified_mechanics_label: "स्थानिक मेकॅनिक्स प्राप्तकर्ता (ॲप अलर्ट):",
+    resend_in_app: "पुन्हा मेसेज पाठवा",
+    call_now: "मेकॅनिकला कॉल करा",
+    siren_on: "सायरेन आवाज बंद करा",
+    siren_off: "सायरेन आवाज सुरू करा",
+    close: "आपत्कालीन अलर्ट बंद करा",
+    mechanic_modal_title: "जवळचे सत्यापित हायवे मेकॅनिक्स",
+    edit_profile: "प्रोफाइल संपादित करा",
+    save: "जतन करा",
+    logout: "लॉग आऊट"
   }
 };
 
-function Dashboard() {
-  const [language, setLanguage] = useState('en');
+export default function Dashboard() {
+  const navigate = useNavigate();
+  const [lang, setLang] = useState('en');
 
-  const [profile, setProfile] = useState({
-    phone: "+91 9876543210",
-    name: "",
-    email: "driver@sarthimitra.com",
-    id: "TM120425DRI00233",
-    license: "MH12-2023-0084920",
-    city: "Pune, Maharashtra",
-    vehicle: "Heavy Commercial Truck",
-    role: "Driver",
-    tier: "Bronze"
+  // Driver Profile from localStorage
+  const [profile, setProfile] = useState(() => {
+    const saved = localStorage.getItem('driverProfile');
+    if (saved) {
+      try {
+        const p = JSON.parse(saved);
+        return {
+          fullName: p.fullName || "Krishna Gadhe",
+          vehicleNumber: p.vehicleNumber || "MH 12 AB 1234",
+          licenseNumber: p.licenseNumber || "MH12 20230001234",
+          emergencyContact: p.emergencyContact || "9876543210",
+          role: p.role || "Truck Driver"
+        };
+      } catch (e) { }
+    }
+    return {
+      fullName: "Krishna Gadhe",
+      vehicleNumber: "MH 12 AB 1234",
+      licenseNumber: "MH12 20230001234",
+      emergencyContact: "9876543210",
+      role: "Truck Driver"
+    };
   });
 
-  const [userPhoto, setUserPhoto] = useState(null);
-  const fileInputRef = useRef(null);
-
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editForm, setEditForm] = useState({ ...profile });
-  const [showSuccessMsg, setShowSuccessMsg] = useState(false);
-
-  // Siren Audio State & Refs
-  const [isSirenActive, setIsSirenActive] = useState(false);
-  const audioCtxRef = useRef(null);
-  const oscRef = useRef(null);
-  const gainRef = useRef(null);
-  const sirenTimerRef = useRef(null);
-
-  // SOS Emergency Contacts State (Persisted in localStorage)
+  // SOS Contacts from localStorage
   const [sosContacts, setSosContacts] = useState(() => {
     const saved = localStorage.getItem('sarthi_sos_contacts');
     if (saved) {
       try {
         return JSON.parse(saved);
-      } catch (e) {}
+      } catch (e) { }
     }
-    return { contact1: '', contact2: '' };
+    return { contact1: '9876543210', contact2: '9123456789' };
   });
 
-  const [isSosSetupModalOpen, setIsSosSetupModalOpen] = useState(false);
-  const [sosForm, setSosForm] = useState({ contact1: '', contact2: '' });
+  // Modals state
+  const [isSosActive, setIsSosActive] = useState(false);
+  const [isMechanicModalOpen, setIsMechanicModalOpen] = useState(false);
+  const [isBreakdownModalOpen, setIsBreakdownModalOpen] = useState(false);
+  const [isTyreModalOpen, setIsTyreModalOpen] = useState(false);
+  const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false);
+  const [isSosSetupOpen, setIsSosSetupOpen] = useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [toastNotice, setToastNotice] = useState('');
 
-  const startSiren = () => {
+  // Breakdown Help Form State
+  const [breakdownPhoto, setBreakdownPhoto] = useState(null);
+  const [breakdownDesc, setBreakdownDesc] = useState('');
+  const [breakdownResult, setBreakdownResult] = useState(null);
+  const [isDiagnosing, setIsDiagnosing] = useState(false);
+
+  // Voice Translator State
+  const [voiceInputText, setVoiceInputText] = useState('');
+  const [translatedText, setTranslatedText] = useState('');
+  const [targetLang, setTargetLang] = useState('hi');
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef(null);
+
+  const translationDict = {
+    hi: { name: 'Hindi', flag: '🇮🇳', samples: {
+      'hello': 'नमस्ते', 'help': 'मदद', 'breakdown': 'गाड़ी खराब हो गई', 'tyre': 'टायर', 'mechanic': 'मैकेनिक',
+      'engine': 'इंजन', 'fuel': 'ईंधन', 'hospital': 'अस्पताल', 'police': 'पुलिस', 'accident': 'दुर्घटना',
+      'where is the nearest mechanic': 'सबसे नजदीकी मैकेनिक कहाँ है', 'my truck broke down': 'मेरा ट्रक खराब हो गया',
+      'i need help': 'मुझे मदद चाहिए', 'tyre puncture': 'टायर पंक्चर', 'oil change': 'ऑयल बदलवाना है',
+      'brake not working': 'ब्रेक काम नहीं कर रहा', 'engine overheating': 'इंजन गरम हो रहा है',
+      'need towing': 'टोइंग चाहिए', 'send ambulance': 'एम्बुलेंस भेजो', 'thank you': 'धन्यवाद'
+    }},
+    mr: { name: 'Marathi', flag: '🇮🇳', samples: {
+      'hello': 'नमस्कार', 'help': 'मदत', 'breakdown': 'गाडी बंद पडली', 'tyre': 'टायर', 'mechanic': 'मेकॅनिक',
+      'engine': 'इंजिन', 'fuel': 'इंधन', 'hospital': 'रुग्णालय', 'police': 'पोलीस', 'accident': 'अपघात',
+      'where is the nearest mechanic': 'सर्वात जवळचा मेकॅनिक कुठे आहे', 'my truck broke down': 'माझा ट्रक बंद पडला',
+      'i need help': 'मला मदत हवी आहे', 'tyre puncture': 'टायर पंक्चर', 'oil change': 'ऑइल बदलायचे आहे',
+      'brake not working': 'ब्रेक काम करत नाही', 'engine overheating': 'इंजिन गरम होत आहे',
+      'need towing': 'टोइंग हवे', 'send ambulance': 'रुग्णवाहिका पाठवा', 'thank you': 'धन्यवाद'
+    }},
+    ta: { name: 'Tamil', flag: '🇮🇳', samples: {
+      'hello': 'வணக்கம்', 'help': 'உதவி', 'breakdown': 'வண்டி கெட்டுப்போச்சு', 'tyre': 'டயர்', 'mechanic': 'மெக்கானிக்',
+      'engine': 'இயந்திரம்', 'fuel': 'எரிபொருள்', 'hospital': 'மருத்துவமனை', 'police': 'காவல்', 'accident': 'விபத்து',
+      'i need help': 'எனக்கு உதவி தேவை', 'tyre puncture': 'டயர் பஞ்சர்', 'thank you': 'நன்றி'
+    }},
+    te: { name: 'Telugu', flag: '🇮🇳', samples: {
+      'hello': 'నమస్కారం', 'help': 'సహాయం', 'breakdown': 'వాహనం చెడిపోయింది', 'tyre': 'టైరు', 'mechanic': 'మెకానిక్',
+      'engine': 'ఇంజన్', 'fuel': 'ఇంధనం', 'hospital': 'ఆసుపత్రి', 'police': 'పోలీసు', 'accident': 'ప్రమాదం',
+      'i need help': 'నాకు సహాయం కావాలి', 'tyre puncture': 'టైరు పంక్చర్', 'thank you': 'ధన్యవాదాలు'
+    }},
+    kn: { name: 'Kannada', flag: '🇮🇳', samples: {
+      'hello': 'ನಮಸ್ಕಾರ', 'help': 'ಸಹಾಯ', 'breakdown': 'ವಾಹನ ಕೆಟ್ಟಿದೆ', 'tyre': 'ಟೈರ್', 'mechanic': 'ಮೆಕ್ಯಾನಿಕ್',
+      'engine': 'ಇಂಜಿನ್', 'fuel': 'ಇಂಧನ', 'hospital': 'ಆಸ್ಪತ್ರೆ', 'police': 'ಪೊಲೀಸ್', 'accident': 'ಅಪಘಾತ',
+      'i need help': 'ನನಗೆ ಸಹಾಯ ಬೇಕು', 'tyre puncture': 'ಟೈರ್ ಪಂಕ್ಚರ್', 'thank you': 'ಧನ್ಯವಾದಗಳು'
+    }}
+  };
+
+  const handleTranslate = (text) => {
+    const lower = text.toLowerCase().trim();
+    const dict = translationDict[targetLang]?.samples || {};
+    if (dict[lower]) {
+      setTranslatedText(dict[lower]);
+      return;
+    }
+    // Try partial match
+    for (const [key, val] of Object.entries(dict)) {
+      if (lower.includes(key) || key.includes(lower)) {
+        setTranslatedText(val);
+        return;
+      }
+    }
+    // Fallback: show transliteration message
+    setTranslatedText(`[${translationDict[targetLang]?.name}] ${text}`);
+  };
+
+  const startVoiceRecognition = () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      setVoiceInputText("Speech recognition not supported in this browser.");
+      return;
+    }
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'en-IN';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+    recognition.onstart = () => setIsListening(true);
+    recognition.onresult = (event) => {
+      const spoken = event.results[0][0].transcript;
+      setVoiceInputText(spoken);
+      handleTranslate(spoken);
+    };
+    recognition.onerror = () => setIsListening(false);
+    recognition.onend = () => setIsListening(false);
+    recognitionRef.current = recognition;
+    recognition.start();
+  };
+
+  const handleResendInAppAlert = (mechanicName) => {
+    setToastNotice(`💬 Emergency Alert Re-sent In-App to ${mechanicName}!`);
+    setTimeout(() => setToastNotice(''), 3000);
+  };
+
+  // Siren Audio State
+  const [isSirenPlaying, setIsSirenPlaying] = useState(false);
+  const audioCtxRef = useRef(null);
+  const oscRef = useRef(null);
+  const gainRef = useRef(null);
+  const sirenTimerRef = useRef(null);
+
+  const t = i18n[lang];
+
+  // Siren Audio Control
+  const toggleSiren = () => {
+    if (isSirenPlaying) {
+      stopSirenAudio();
+    } else {
+      startSirenAudio();
+    }
+  };
+
+  const startSirenAudio = () => {
     try {
-      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-      const ctx = new AudioContextClass();
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      const ctx = new AudioCtx();
       audioCtxRef.current = ctx;
 
       const osc = ctx.createOscillator();
@@ -94,8 +317,7 @@ function Dashboard() {
 
       osc.type = 'sawtooth';
       osc.frequency.setValueAtTime(700, ctx.currentTime);
-
-      gain.gain.setValueAtTime(0.35, ctx.currentTime);
+      gain.gain.setValueAtTime(0.3, ctx.currentTime);
 
       osc.connect(gain);
       gain.connect(ctx.destination);
@@ -108,833 +330,896 @@ function Dashboard() {
       sirenTimerRef.current = setInterval(() => {
         if (oscRef.current && audioCtxRef.current) {
           const now = audioCtxRef.current.currentTime;
-          oscRef.current.frequency.exponentialRampToValueAtTime(high ? 600 : 1300, now + 0.25);
+          oscRef.current.frequency.exponentialRampToValueAtTime(high ? 600 : 1200, now + 0.35);
           high = !high;
         }
-      }, 300);
+      }, 400);
 
-      setIsSirenActive(true);
+      setIsSirenPlaying(true);
     } catch (err) {
-      console.error("Audio error:", err);
-      setIsSirenActive(true);
+      console.log("Audio not supported or blocked", err);
     }
   };
 
-  const stopSiren = () => {
-    if (sirenTimerRef.current) {
-      clearInterval(sirenTimerRef.current);
-      sirenTimerRef.current = null;
-    }
+  const stopSirenAudio = () => {
+    if (sirenTimerRef.current) clearInterval(sirenTimerRef.current);
     if (oscRef.current) {
-      try {
-        oscRef.current.stop();
-        oscRef.current.disconnect();
-      } catch (e) {}
+      try { oscRef.current.stop(); oscRef.current.disconnect(); } catch (e) { }
       oscRef.current = null;
     }
     if (audioCtxRef.current) {
-      try {
-        audioCtxRef.current.close();
-      } catch (e) {}
+      try { audioCtxRef.current.close(); } catch (e) { }
       audioCtxRef.current = null;
     }
-    setIsSirenActive(false);
+    setIsSirenPlaying(false);
   };
 
-  const handleSosClick = () => {
-    if (isSirenActive) {
-      stopSiren();
-      return;
-    }
-
-    // Check if 2 emergency numbers are registered
-    if (!sosContacts.contact1 || !sosContacts.contact2) {
-      setSosForm({
-        contact1: sosContacts.contact1 || '',
-        contact2: sosContacts.contact2 || ''
-      });
-      setIsSosSetupModalOpen(true);
-    } else {
-      startSiren();
-    }
+  const handleOpenSos = () => {
+    setIsSosActive(true);
+    startSirenAudio();
   };
 
-  const handleSaveSosContacts = (e) => {
-    if (e) e.preventDefault();
-    if (!sosForm.contact1 || !sosForm.contact2) {
-      alert("Please enter both emergency phone numbers.");
-      return;
-    }
-    const updated = {
-      contact1: sosForm.contact1.trim(),
-      contact2: sosForm.contact2.trim()
-    };
-    setSosContacts(updated);
-    localStorage.setItem('sarthi_sos_contacts', JSON.stringify(updated));
-    setIsSosSetupModalOpen(false);
-    startSiren();
+  const handleCloseSos = () => {
+    setIsSosActive(false);
+    stopSirenAudio();
   };
 
-  const t = translations[language];
-
-  const handlePhotoUpload = (e) => {
-    const file = e.target.files && e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setUserPhoto(reader.result);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const toggleLanguage = () => {
-    setLanguage(prev => prev === 'en' ? 'mr' : 'en');
-  };
-
-  const handleOpenModal = () => {
-    setEditForm({ ...profile });
-    setIsEditModalOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    setIsEditModalOpen(false);
-  };
-
-  const handleInputChange = (field, value) => {
-    setEditForm(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
-  const handleSaveProfile = (e) => {
-    if (e) e.preventDefault();
-    setProfile({ ...editForm });
-    setIsEditModalOpen(false);
-    setShowSuccessMsg(true);
-    setTimeout(() => {
-      setShowSuccessMsg(false);
-    }, 4000);
-  };
+  // Nearby Mechanics Mock Data
+  const mechanicsList = [
+    { name: "Highway Auto Care & Towing", dist: "2.4 km away", rating: "4.9 ★", phone: "+91 9822012345", spec: "Engine, Tyre & Heavy Towing" },
+    { name: "Pawar Diesel Mechanics", dist: "5.1 km away", rating: "4.8 ★", phone: "+91 9422054321", spec: "Brake & Fuel Pump Specialist" },
+    { name: "Katraj Mobile Service Van", dist: "7.8 km away", rating: "4.7 ★", phone: "+91 9922099887", spec: "24/7 On-Road Battery & Electrical" }
+  ];
 
   return (
-    <div className="dashboard-layout">
-      {/* Main Dashboard Container */}
-      <div className="mobile-container">
-        <header className="dashboard-header">
-          <button className="language-toggle" onClick={toggleLanguage} type="button">
-            {language === 'en' ? 'मराठी' : 'English'}
-          </button>
-          
-          <div className="header-content">
-            <div className="user-info">
-              <div className="name-header" style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-                <h1 style={{ margin: 0 }}>
-                  {profile.name ? `${t.greeting} ${profile.name}` : profile.phone}
-                </h1>
-                <button 
-                  type="button"
-                  className="inline-edit-btn"
-                  onClick={handleOpenModal}
-                  style={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.25)',
-                    color: '#ffffff',
-                    border: '1px solid rgba(255, 255, 255, 0.4)',
-                    padding: '6px 14px',
-                    borderRadius: '20px',
-                    fontSize: '0.85rem',
-                    fontWeight: '600',
-                    cursor: 'pointer',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    transition: 'all 0.2s ease',
-                    boxShadow: '0 2px 6px rgba(0,0,0,0.15)'
-                  }}
-                >
-                  ✏️ {t.editBtn}
-                </button>
-              </div>
-
-              <p className="user-id" style={{ marginTop: '4px' }}>{t.idPrefix} {profile.id}</p>
-              
-              <div className="badges">
-                <span className="role-badge">{profile.role}</span>
-              </div>
-            </div>
-            
-            <div className="profile-section">
-              <div className="avatar-container" style={{ position: 'relative' }}>
-                <img 
-                  src={userPhoto || `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.name || 'Driver')}&background=0b3d8c&color=fff&size=150`} 
-                  alt={profile.name || 'Driver Avatar'} 
-                  className="avatar" 
-                />
-                
-                {/* Hidden File Input */}
-                <input 
-                  type="file" 
-                  ref={fileInputRef} 
-                  accept="image/*" 
-                  style={{ display: 'none' }} 
-                  onChange={handlePhotoUpload} 
-                />
-
-                {/* Camera Icon Overlay Button */}
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current && fileInputRef.current.click()}
-                  title="Upload Profile Photo"
-                  style={{
-                    position: 'absolute',
-                    bottom: '0px',
-                    right: '0px',
-                    backgroundColor: '#ffffff',
-                    color: '#0f172a',
-                    border: '2px solid #0b3d8c',
-                    borderRadius: '50%',
-                    width: '32px',
-                    height: '32px',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    cursor: 'pointer',
-                    boxShadow: '0 2px 6px rgba(0,0,0,0.25)',
-                    fontSize: '15px',
-                    padding: 0,
-                    zIndex: 25
-                  }}
-                >
-                  📷
-                </button>
-              </div>
-              <div className="rating">
-                <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
-              </div>
-            </div>
+    <div className="dashboard-root">
+      {/* 1. Header Bar */}
+      <header className="dash-header">
+        <div className="brand-section">
+          <div className="dash-logo-icon" style={{ background: 'transparent', boxShadow: 'none' }}>
+            <img src="/images/logo-removebg-preview.png" alt="SaarthiMitra Logo" className="brand-logo-img" style={{ width: '64px', height: '64px', objectFit: 'contain' }} />
           </div>
-
-          {/* Circular SOS Siren Button */}
-          <div className="sos-container">
-            <button
-              type="button"
-              className={`sos-btn ${isSirenActive ? 'sos-active' : ''}`}
-              onClick={handleSosClick}
-              title="Emergency SOS Alarm Siren"
-            >
-              <span className="sos-text">SOS</span>
-              <span className="sos-subtext">{isSirenActive ? 'SIREN ON' : 'PRESS'}</span>
-            </button>
+          <div className="brand-info">
+            <h1>SaarthiMitra</h1>
+            <p>{t.brand_subtitle}</p>
           </div>
-        </header>
-        
-        <main className="dashboard-content" style={{ padding: '50px 24px 24px' }}>
-          
-          {/* Active Emergency Siren Alert */}
-          {isSirenActive && (
-            <div style={{
-              backgroundColor: '#fee2e2',
-              color: '#991b1b',
-              padding: '18px 20px',
-              borderRadius: '14px',
-              marginBottom: '20px',
-              border: '2px solid #ef4444',
-              fontWeight: '700',
-              boxShadow: '0 4px 14px rgba(239, 68, 68, 0.35)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '12px'
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <span style={{ fontSize: '1.8rem' }}>🚨</span>
-                  <div>
-                    <div style={{ fontSize: '1.1rem', color: '#991b1b', fontWeight: '800' }}>EMERGENCY SOS SIREN ACTIVE!</div>
-                    <div style={{ fontSize: '0.85rem', fontWeight: '600', color: '#7f1d1d', marginTop: '2px' }}>
-                      Siren sounding loudly. Emergency distress SMS dispatched!
-                    </div>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={stopSiren}
-                  style={{
-                    backgroundColor: '#dc2626',
-                    color: '#ffffff',
-                    border: 'none',
-                    padding: '10px 18px',
-                    borderRadius: '10px',
-                    fontWeight: '700',
-                    cursor: 'pointer',
-                    fontSize: '0.875rem',
-                    boxShadow: '0 2px 6px rgba(0,0,0,0.2)'
-                  }}
-                >
-                  ⏹️ STOP SIREN
-                </button>
-              </div>
-
-              {/* Message sent details box */}
-              <div style={{
-                backgroundColor: '#ffffff',
-                color: '#1e293b',
-                padding: '12px 16px',
-                borderRadius: '10px',
-                border: '1px solid #fca5a5',
-                fontSize: '0.875rem'
-              }}>
-                <div style={{ fontWeight: '700', color: '#dc2626', marginBottom: '6px' }}>
-                  📲 Emergency SMS Alerts Sent To Your 2 Registered Numbers:
-                </div>
-                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '8px' }}>
-                  <span style={{ background: '#fef2f2', padding: '6px 12px', borderRadius: '6px', border: '1px solid #fecaca', fontWeight: '600' }}>
-                    📞 Contact 1: <strong style={{ color: '#0f172a' }}>{sosContacts.contact1}</strong> (SENT ✅)
-                  </span>
-                  <span style={{ background: '#fef2f2', padding: '6px 12px', borderRadius: '6px', border: '1px solid #fecaca', fontWeight: '600' }}>
-                    📞 Contact 2: <strong style={{ color: '#0f172a' }}>{sosContacts.contact2}</strong> (SENT ✅)
-                  </span>
-                </div>
-                <div style={{ fontSize: '0.8rem', color: '#64748b', fontStyle: 'italic' }}>
-                  💬 "EMERGENCY SOS: Driver {profile.name || profile.phone} needs immediate help! Current Location: {profile.city || 'GPS Location'}"
-                </div>
-              </div>
-            </div>
-          )}
-
-          {showSuccessMsg && (
-            <div style={{
-              backgroundColor: '#e8f5e9',
-              color: '#2e7d32',
-              padding: '12px 18px',
-              borderRadius: '12px',
-              marginBottom: '20px',
-              border: '1px solid #a5d6a7',
-              fontWeight: '600',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
-            }}>
-              🎉 {t.statusSaved}
-            </div>
-          )}
-
-          {/* Monthly Safety Report Card */}
-          <div style={{
-            background: '#ffffff',
-            borderRadius: '20px',
-            padding: '24px 28px',
-            border: '1px solid #e2e8f0',
-            boxShadow: '0 4px 14px rgba(0, 0, 0, 0.04)',
-            marginBottom: '24px'
-          }}>
-            {/* Header */}
-            <div style={{ marginBottom: '16px' }}>
-              <h2 style={{ fontSize: '1.3rem', fontWeight: '800', color: '#0f172a', margin: 0 }}>
-                Monthly Safety Report
-              </h2>
-              <p style={{ fontSize: '0.875rem', color: '#64748b', margin: '4px 0 0 0' }}>
-                An overview of incidents reported this month.
-              </p>
-            </div>
-
-            {/* Gauge Chart Graphic Container */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', margin: '10px 0 10px 0' }}>
-              
-              {/* Semi-Circle SVG Radial Gauge */}
-              <svg width="280" height="140" viewBox="0 0 300 155" style={{ maxWidth: '100%', height: 'auto', overflow: 'visible' }}>
-                
-                {/* Outer Arc: Breakdowns (Orange/Coral) */}
-                <path
-                  d="M 30,140 A 120,120 0 0,1 270,140"
-                  fill="none"
-                  stroke="#f1f5f9"
-                  strokeWidth="16"
-                  strokeLinecap="round"
-                />
-                <path
-                  d="M 30,140 A 120,120 0 0,1 270,140"
-                  fill="none"
-                  stroke="#fb923c"
-                  strokeWidth="16"
-                  strokeLinecap="round"
-                  strokeDasharray="377"
-                  strokeDashoffset="113"
-                />
-
-                {/* Middle Arc: Safety Incidents / Safe Instance (Teal/Green) */}
-                <path
-                  d="M 55,140 A 95,95 0 0,1 245,140"
-                  fill="none"
-                  stroke="#f1f5f9"
-                  strokeWidth="16"
-                  strokeLinecap="round"
-                />
-                <path
-                  d="M 55,140 A 95,95 0 0,1 245,140"
-                  fill="none"
-                  stroke="#0d9488"
-                  strokeWidth="16"
-                  strokeLinecap="round"
-                  strokeDasharray="298"
-                  strokeDashoffset="160"
-                />
-
-                {/* Inner Arc: Accidents (Red/Coral) */}
-                <path
-                  d="M 80,140 A 70,70 0 0,1 220,140"
-                  fill="none"
-                  stroke="#f1f5f9"
-                  strokeWidth="16"
-                  strokeLinecap="round"
-                />
-                <path
-                  d="M 80,140 A 70,70 0 0,1 220,140"
-                  fill="none"
-                  stroke="#ef4444"
-                  strokeWidth="16"
-                  strokeLinecap="round"
-                  strokeDasharray="220"
-                  strokeDashoffset="187"
-                />
-              </svg>
-
-              {/* Chart Legend */}
-              <div style={{ display: 'flex', gap: '20px', alignItems: 'center', marginTop: '16px', flexWrap: 'wrap', justifyContent: 'center' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.875rem', fontWeight: '600', color: '#ef4444' }}>
-                  <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#ef4444', display: 'inline-block' }}></span>
-                  Accidents
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.875rem', fontWeight: '600', color: '#0d9488' }}>
-                  <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#0d9488', display: 'inline-block' }}></span>
-                  Safety Incidents
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.875rem', fontWeight: '600', color: '#fb923c' }}>
-                  <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#fb923c', display: 'inline-block' }}></span>
-                  Breakdowns
-                </div>
-              </div>
-            </div>
-
-            {/* Footer Summary Info */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', borderTop: '1px solid #f1f5f9', paddingTop: '16px', marginTop: '16px', flexWrap: 'wrap', gap: '12px' }}>
-              <div>
-                <div style={{ fontSize: '0.875rem', fontWeight: '600', color: '#334155', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  Incidents are down by 3.1% this month <span style={{ color: '#16a34a', fontWeight: '700' }}>📉</span>
-                </div>
-                <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '2px' }}>
-                  January 2025
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                <div style={{ background: '#f8fafc', padding: '8px 14px', borderRadius: '10px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
-                  <span style={{ fontSize: '0.75rem', color: '#64748b', display: 'block', fontWeight: '600' }}>SAFE INSTANCE</span>
-                  <span style={{ fontSize: '0.95rem', fontWeight: '800', color: '#0d9488' }}>96.4%</span>
-                </div>
-
-                <div style={{ background: '#f8fafc', padding: '8px 14px', borderRadius: '10px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
-                  <span style={{ fontSize: '0.75rem', color: '#64748b', display: 'block', fontWeight: '600' }}>BREAKDOWNS</span>
-                  <span style={{ fontSize: '0.95rem', fontWeight: '800', color: '#f97316' }}>2 Logged</span>
-                </div>
-
-                <div style={{ background: '#f8fafc', padding: '8px 14px', borderRadius: '10px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
-                  <span style={{ fontSize: '0.75rem', color: '#64748b', display: 'block', fontWeight: '600' }}>ACCIDENTS</span>
-                  <span style={{ fontSize: '0.95rem', fontWeight: '800', color: '#ef4444' }}>0 Active</span>
-                </div>
-              </div>
-            </div>
-
-          </div>
-
-        </main>
-      </div>
-
-      {/* Sidebar Quick Actions */}
-      <aside className="sidebar-card">
-        <h3>Quick Actions</h3>
-        <div className="sidebar-links">
-          <button 
-            type="button" 
-            className="sidebar-btn"
-            onClick={handleOpenModal}
-          >
-             Edit Profile
-          </button>
-          <button 
-            type="button" 
-            className="sidebar-btn"
-            onClick={() => {
-              setSosForm({
-                contact1: sosContacts.contact1 || '',
-                contact2: sosContacts.contact2 || ''
-              });
-              setIsSosSetupModalOpen(true);
-            }}
-          >
-             SOS Emergency Numbers
-          </button>
-          <button type="button" className="sidebar-btn">⚙️ Settings</button>
-          <button type="button" className="sidebar-btn">🎧 Support</button>
         </div>
-      </aside>
 
-      {/* Emergency SOS Contact Registration Modal */}
-      {isSosSetupModalOpen && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(15, 23, 42, 0.75)',
-          backdropFilter: 'blur(6px)',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          zIndex: 9999,
-          padding: '20px'
-        }}>
-          <div style={{
-            backgroundColor: '#ffffff',
-            borderRadius: '20px',
-            width: '100%',
-            maxWidth: '500px',
-            padding: '28px',
-            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2)'
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', paddingBottom: '12px', borderBottom: '1px solid #e2e8f0' }}>
-              <h2 style={{ fontSize: '1.25rem', color: '#dc2626', fontWeight: '800', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                🚨 Register Emergency Contacts
+        <div className="user-status-area">
+          <button className="lang-btn" onClick={() => setLang(lang === 'en' ? 'mr' : 'en')}>
+            {lang === 'en' ? 'मराठी' : 'English'}
+          </button>
+
+          <div className="driver-profile-pill" onClick={() => setIsProfileModalOpen(true)}>
+            <div className="avatar-circle">
+              {profile.fullName ? profile.fullName.charAt(0).toUpperCase() : 'D'}
+            </div>
+            <div className="driver-meta">
+              <span className="driver-name">{profile.fullName}</span>
+              <span className="driver-role-text">{profile.vehicleNumber}</span>
+            </div>
+          </div>
+
+          <button className="lang-btn" style={{ borderColor: 'rgba(239, 68, 68, 0.4)', color: '#f87171' }} onClick={() => navigate('/')}>
+            {t.logout}
+          </button>
+        </div>
+      </header>
+
+      {/* 2. Main Dashboard Grid */}
+      <div className="dash-main-grid">
+        <div className="dash-content-col">
+          {/* Emergency SOS Hero Banner */}
+          <div className="sos-banner-card">
+            <div className="sos-banner-info">
+              <h2>
+                <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#ef4444" strokeWidth="2.5">
+                  <polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2" />
+                  <line x1="12" y1="8" x2="12" y2="12" />
+                  <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+                {t.sos_title}
               </h2>
-              <button
-                type="button"
-                onClick={() => setIsSosSetupModalOpen(false)}
-                style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: '#64748b' }}
-              >
-                ✕
+              <p style={{ margin: 0 }}>{t.sos_desc}</p>
+            </div>
+
+            <div className="sos-trigger-wrapper">
+              <div className="sos-pulse-ring"></div>
+              <button className="sos-button-main" onClick={handleOpenSos}>
+                <span className="sos-btn-text">{t.press_sos}</span>
+                <span className="sos-btn-sub">{t.press_sub}</span>
               </button>
             </div>
+          </div>
 
-            <p style={{ fontSize: '0.9rem', color: '#475569', marginBottom: '20px', lineHeight: '1.4' }}>
-              Please register <strong>2 emergency mobile numbers</strong> (Family / Police / Friend). When you press the SOS button, an emergency siren will sound and SMS alerts will be sent to both numbers.
-            </p>
+          {/* 4 Helping Options Grid */}
+          <div className="stats-grid">
+            {/* 1. Breakdown Help */}
+            <div className="stat-card" style={{ cursor: 'pointer' }} onClick={() => setIsBreakdownModalOpen(true)}>
+              <div className="stat-icon-wrap" style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444' }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                  <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+                </svg>
+              </div>
+              <div className="stat-info">
+                <div className="stat-value" style={{ fontSize: '1.1rem', color: '#dc2626' }}>{t.help_breakdown_title}</div>
+                <div className="stat-sub" style={{ marginTop: '0.2rem', color: '#475569' }}>{t.help_breakdown_sub}</div>
+              </div>
+            </div>
 
-            <form onSubmit={handleSaveSosContacts}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                
-                {/* Contact 1 */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <label style={{ fontSize: '0.875rem', fontWeight: '700', color: '#1e293b' }}>
-                    Emergency Contact 1 * (e.g. Family Member)
-                  </label>
-                  <input
-                    type="tel"
-                    required
-                    value={sosForm.contact1}
-                    onChange={(e) => setSosForm({ ...sosForm, contact1: e.target.value })}
-                    placeholder="+91 9876543210"
-                    style={{
-                      padding: '12px 14px',
-                      borderRadius: '10px',
-                      border: '1px solid #cbd5e1',
-                      fontSize: '0.95rem',
-                      outline: 'none',
-                      backgroundColor: '#f8fafc'
-                    }}
-                  />
+            {/* 2. Tyre Repair */}
+            <div className="stat-card" style={{ cursor: 'pointer' }} onClick={() => setIsTyreModalOpen(true)}>
+              <div className="stat-icon-wrap" style={{ background: 'rgba(245, 158, 11, 0.15)', color: '#d97706' }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                  <circle cx="12" cy="12" r="9" />
+                  <circle cx="12" cy="12" r="3" />
+                  <path d="M12 3v6M12 15v6M3 12h6M15 12h6" />
+                </svg>
+              </div>
+              <div className="stat-info">
+                <div className="stat-value" style={{ fontSize: '1.1rem', color: '#b45309' }}>{t.help_tyre_title}</div>
+                <div className="stat-sub" style={{ marginTop: '0.2rem', color: '#475569' }}>{t.help_tyre_sub}</div>
+              </div>
+            </div>
+
+            {/* 3. Mechanic Locator */}
+            <div className="stat-card" style={{ cursor: 'pointer' }} onClick={() => setIsMechanicModalOpen(true)}>
+              <div className="stat-icon-wrap" style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#059669' }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                  <circle cx="12" cy="10" r="3" />
+                </svg>
+              </div>
+              <div className="stat-info">
+                <div className="stat-value" style={{ fontSize: '1.1rem', color: '#047857' }}>{t.help_mechanic_title}</div>
+                <div className="stat-sub" style={{ marginTop: '0.2rem', color: '#475569' }}>{t.help_mechanic_sub}</div>
+              </div>
+            </div>
+
+            {/* 4. AI Voice Helper */}
+            <div className="stat-card" style={{ cursor: 'pointer' }} onClick={() => setIsVoiceModalOpen(true)}>
+              <div className="stat-icon-wrap" style={{ background: 'rgba(99, 102, 241, 0.15)', color: '#4f46e5' }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                  <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z" />
+                  <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                  <line x1="12" y1="19" x2="12" y2="22" />
+                </svg>
+              </div>
+              <div className="stat-info">
+                <div className="stat-value" style={{ fontSize: '1.1rem', color: '#4338ca' }}>{t.help_voice_title}</div>
+                <div className="stat-sub" style={{ marginTop: '0.2rem', color: '#475569' }}>{t.help_voice_sub}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 3. Right Sidebar Column */}
+        <div className="dash-sidebar-col">
+          {/* Helplines Widget */}
+          <div className="side-widget">
+            <h3>
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#38bdf8" strokeWidth="2"><path d="M22 16.92V19.92A2 2 0 0 1 20.08 22 19.86 19.86 0 0 1 2 3.92 2 2 0 0 1 4 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" /></svg>
+              {t.helpline_title}
+            </h3>
+
+            <div className="helpline-item">
+              <div>
+                <div className="helpline-name">{t.police}</div>
+                <div className="helpline-sub">Dial 112 (Highway Patrol)</div>
+              </div>
+              <a href="tel:112" className="call-btn-mini">Call 112</a>
+            </div>
+
+            <div className="helpline-item">
+              <div>
+                <div className="helpline-name">{t.ambulance}</div>
+                <div className="helpline-sub">Dial 108 (Trauma Ambulance)</div>
+              </div>
+              <a href="tel:108" className="call-btn-mini">Call 108</a>
+            </div>
+
+            <div className="helpline-item">
+              <div>
+                <div className="helpline-name">{t.crane}</div>
+                <div className="helpline-sub">1800-266-9900 (24x7 Control)</div>
+              </div>
+              <a href="tel:18002669900" className="call-btn-mini">Call Support</a>
+            </div>
+
+            <div className="helpline-item">
+              <div>
+                <div className="helpline-name">{t.toll}</div>
+                <div className="helpline-sub">Dial 1033 (NHAI Emergency)</div>
+              </div>
+              <a href="tel:1033" className="call-btn-mini">Call 1033</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 4. MODALS */}
+
+      {/* SOS Modal - In-App Direct Emergency Dispatch to Local Mechanics */}
+      {isSosActive && (
+        <div className="dash-modal-overlay">
+          <div className="dash-modal-card" style={{ borderColor: '#ef4444', textAlign: 'left', maxWidth: '580px' }}>
+            <div className="dash-modal-header" style={{ borderBottom: '1px solid #fee2e2', paddingBottom: '0.75rem', marginBottom: '1rem' }}>
+              <h3 style={{ color: '#dc2626', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.15rem' }}>
+                🚨 {t.sos_modal_title}
+              </h3>
+              <button className="close-modal-btn" onClick={handleCloseSos}>✕</button>
+            </div>
+
+            {toastNotice && (
+              <div style={{ background: '#3b82f6', color: '#ffffff', padding: '0.75rem 1rem', borderRadius: '12px', marginBottom: '1rem', fontWeight: '700', fontSize: '0.85rem', boxShadow: '0 4px 15px rgba(59, 130, 246, 0.3)' }}>
+                {toastNotice}
+              </div>
+            )}
+
+            <div style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', padding: '0.85rem 1rem', borderRadius: '14px', marginBottom: '1rem', color: '#047857', fontWeight: '700', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span>{t.sos_success_badge}</span>
+            </div>
+
+            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', padding: '0.85rem 1rem', borderRadius: '14px', marginBottom: '1rem' }}>
+              <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: '700', textTransform: 'uppercase', marginBottom: '0.3rem' }}>{t.message_payload_label}</div>
+              <div style={{ fontSize: '0.85rem', fontWeight: '600', color: '#0f172a', lineHeight: '1.4', background: '#ffffff', padding: '0.6rem 0.8rem', borderRadius: '10px', border: '1px solid #cbd5e1' }}>
+                "🚨 EMERGENCY HIGHWAY BREAKDOWN: Driver <strong>{profile.fullName}</strong> (Vehicle: <strong>{profile.vehicleNumber}</strong>) requires immediate assistance at NH-48 Katraj Bypass. Emergency Phone: <strong>{profile.emergencyContact || '9876543210'}</strong>."
+              </div>
+            </div>
+
+            <div style={{ fontSize: '0.85rem', fontWeight: '700', color: '#1e293b', marginBottom: '0.75rem' }}>
+              🛠️ {t.notified_mechanics_label}
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.25rem' }}>
+              {mechanicsList.map((m, idx) => (
+                <div key={idx} style={{ background: '#ffffff', border: '1px solid #cbd5e1', padding: '0.85rem 1rem', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                  <div>
+                    <div style={{ fontWeight: '700', color: '#0f172a', fontSize: '0.9rem' }}>{m.name}</div>
+                    <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.15rem' }}>
+                      {m.spec} • <strong style={{ color: '#059669' }}>🟢 Direct Message Received</strong> ({m.dist})
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <button type="button" onClick={() => handleResendInAppAlert(m.name)} className="call-btn-mini" style={{ background: '#eff6ff', borderColor: '#bfdbfe', color: '#1d4ed8', cursor: 'pointer' }}>
+                      💬 {t.resend_in_app}
+                    </button>
+                    <a href={`tel:${m.phone}`} className="call-btn-mini">
+                      📞 {t.call_now}
+                    </a>
+                  </div>
                 </div>
+              ))}
+            </div>
 
-                {/* Contact 2 */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <label style={{ fontSize: '0.875rem', fontWeight: '700', color: '#1e293b' }}>
-                    Emergency Contact 2 * (e.g. Friend / Helpline)
-                  </label>
-                  <input
-                    type="tel"
-                    required
-                    value={sosForm.contact2}
-                    onChange={(e) => setSosForm({ ...sosForm, contact2: e.target.value })}
-                    placeholder="+91 9123456789"
-                    style={{
-                      padding: '12px 14px',
-                      borderRadius: '10px',
-                      border: '1px solid #cbd5e1',
-                      fontSize: '0.95rem',
-                      outline: 'none',
-                      backgroundColor: '#f8fafc'
-                    }}
-                  />
+            <div style={{ display: 'flex', gap: '0.75rem' }}>
+              <button className="lang-btn" style={{ flex: 1, background: isSirenPlaying ? '#ef4444' : '#f1f5f9', color: isSirenPlaying ? '#ffffff' : '#334155', border: isSirenPlaying ? 'none' : '1px solid #cbd5e1', padding: '0.75rem', fontWeight: '700' }} onClick={toggleSiren}>
+                🔊 {isSirenPlaying ? t.siren_on : t.siren_off}
+              </button>
+              <button className="lang-btn" style={{ flex: 1, background: '#0f172a', color: '#ffffff', border: 'none', padding: '0.75rem', fontWeight: '700' }} onClick={handleCloseSos}>
+                {t.close}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Mechanic Locator Modal */}
+      {isMechanicModalOpen && (
+        <div className="dash-modal-overlay">
+          <div className="dash-modal-card" style={{ maxWidth: '620px', background: '#f0fdf4', padding: '1.75rem' }}>
+            <div className="dash-modal-header" style={{ marginBottom: '0.5rem' }}>
+              <h3 style={{ color: '#0f172a', fontSize: '1.4rem', fontWeight: '800' }}>📍 Mechanic Locator</h3>
+              <button className="close-modal-btn" onClick={() => setIsMechanicModalOpen(false)}>✕</button>
+            </div>
+
+            {/* Slogan Banner */}
+            <div style={{
+              background: 'linear-gradient(135deg, #10b981, #047857)',
+              borderRadius: '16px',
+              padding: '1.1rem 1.25rem',
+              marginBottom: '1.5rem',
+              textAlign: 'center'
+            }}>
+              <div style={{ fontSize: '1.15rem', fontWeight: '800', color: '#ffffff', letterSpacing: '0.3px' }}>
+                "Your highway mechanic, just a tap away"
+              </div>
+              <div style={{ fontSize: '0.78rem', color: '#d1fae5', marginTop: '0.25rem', fontWeight: '500' }}>
+                SaarthiMitra Verified Mechanic Network
+              </div>
+            </div>
+
+            {/* Nearby Mechanics Header */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+              <span style={{ fontSize: '0.95rem', fontWeight: '700', color: '#334155' }}>
+                📍 Nearby Verified Mechanics (5–10 km)
+              </span>
+              <span style={{ fontSize: '0.72rem', background: '#dcfce7', color: '#166534', padding: '0.2rem 0.6rem', borderRadius: '999px', fontWeight: '600' }}>
+                Live GPS
+              </span>
+            </div>
+
+            {/* Mechanic Shop Cards */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              {/* Mechanic 1 */}
+              <div style={{ background: '#ffffff', border: '1px solid #bbf7d0', padding: '1rem', borderRadius: '14px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ fontWeight: '700', color: '#065f46', fontSize: '0.95rem' }}>🛠️ Patil Highway Auto Garage</div>
+                  <span style={{ fontSize: '0.72rem', background: '#dcfce7', color: '#166534', padding: '0.15rem 0.5rem', borderRadius: '999px', fontWeight: '700' }}>5.0 km</span>
                 </div>
-
+                <div style={{ fontSize: '0.78rem', color: '#047857', margin: '0.3rem 0' }}>Engine Repair • Brake Service • Electrical • 24/7</div>
+                <div style={{ fontSize: '0.72rem', color: '#64748b' }}>⭐ 4.8 Rating • Open Now</div>
+                <a href="tel:+919021683085" className="call-btn-mini" style={{ marginTop: '0.5rem', display: 'inline-flex', background: '#059669', color: '#fff', border: 'none' }}>
+                  📞 Call Now (+91 9021683085)
+                </a>
               </div>
 
-              <div style={{ marginTop: '24px', display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-                <button
-                  type="button"
-                  onClick={() => setIsSosSetupModalOpen(false)}
+              {/* Mechanic 2 */}
+              <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', padding: '1rem', borderRadius: '14px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ fontWeight: '700', color: '#0f172a', fontSize: '0.95rem' }}>🛠️ Sharma Diesel Engine Works</div>
+                  <span style={{ fontSize: '0.72rem', background: '#e0f2fe', color: '#0369a1', padding: '0.15rem 0.5rem', borderRadius: '999px', fontWeight: '700' }}>6.3 km</span>
+                </div>
+                <div style={{ fontSize: '0.78rem', color: '#475569', margin: '0.3rem 0' }}>Diesel Engine • Turbo Repair • Oil Change</div>
+                <div style={{ fontSize: '0.72rem', color: '#64748b' }}>⭐ 4.5 Rating • Open Now</div>
+                <a href="tel:+918421678465" className="call-btn-mini" style={{ marginTop: '0.5rem', display: 'inline-flex' }}>
+                  📞 Call Now (+91 8421678465)
+                </a>
+              </div>
+
+              {/* Mechanic 3 */}
+              <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', padding: '1rem', borderRadius: '14px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ fontWeight: '700', color: '#0f172a', fontSize: '0.95rem' }}>🛠️ Katraj Truck Service Center</div>
+                  <span style={{ fontSize: '0.72rem', background: '#e0f2fe', color: '#0369a1', padding: '0.15rem 0.5rem', borderRadius: '999px', fontWeight: '700' }}>7.1 km</span>
+                </div>
+                <div style={{ fontSize: '0.78rem', color: '#475569', margin: '0.3rem 0' }}>Heavy Vehicle • Suspension • Clutch & Gearbox</div>
+                <div style={{ fontSize: '0.72rem', color: '#64748b' }}>⭐ 4.6 Rating • Open Now</div>
+                <a href="tel:+919876543210" className="call-btn-mini" style={{ marginTop: '0.5rem', display: 'inline-flex' }}>
+                  📞 Call Now (+91 9876543210)
+                </a>
+              </div>
+
+              {/* Mechanic 4 */}
+              <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', padding: '1rem', borderRadius: '14px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ fontWeight: '700', color: '#0f172a', fontSize: '0.95rem' }}>🛠️ NH-48 Mobile Repair Van</div>
+                  <span style={{ fontSize: '0.72rem', background: '#dcfce7', color: '#166534', padding: '0.15rem 0.5rem', borderRadius: '999px', fontWeight: '700' }}>8.5 km</span>
+                </div>
+                <div style={{ fontSize: '0.78rem', color: '#475569', margin: '0.3rem 0' }}>Mobile Van • Roadside Emergency • AC & Coolant Fix</div>
+                <div style={{ fontSize: '0.72rem', color: '#64748b' }}>⭐ 4.7 Rating • Open 24/7</div>
+                <a href="tel:+919822012345" className="call-btn-mini" style={{ marginTop: '0.5rem', display: 'inline-flex', background: '#16a34a', color: '#fff', border: 'none' }}>
+                  📞 Emergency Call (+91 9822012345)
+                </a>
+              </div>
+
+              {/* Mechanic 5 */}
+              <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', padding: '1rem', borderRadius: '14px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ fontWeight: '700', color: '#0f172a', fontSize: '0.95rem' }}>🛠️ Shree Auto Multi-Brand Garage</div>
+                  <span style={{ fontSize: '0.72rem', background: '#e0f2fe', color: '#0369a1', padding: '0.15rem 0.5rem', borderRadius: '999px', fontWeight: '700' }}>9.8 km</span>
+                </div>
+                <div style={{ fontSize: '0.78rem', color: '#475569', margin: '0.3rem 0' }}>Multi-Brand • Tata • Ashok Leyland • Eicher Specialist</div>
+                <div style={{ fontSize: '0.72rem', color: '#64748b' }}>⭐ 4.4 Rating • Open Now</div>
+                <a href="tel:+919123456789" className="call-btn-mini" style={{ marginTop: '0.5rem', display: 'inline-flex' }}>
+                  📞 Call Now (+91 9123456789)
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Breakdown Help Modal - Photo Upload & Diagnosis Form */}
+      {isBreakdownModalOpen && (
+        <div className="dash-modal-overlay">
+          <div className="dash-modal-card" style={{ maxWidth: '620px', background: '#f8fafc', padding: '1.75rem' }}>
+            <div className="dash-modal-header" style={{ marginBottom: '1.25rem' }}>
+              <h3 style={{ color: '#0f172a', fontSize: '1.4rem', fontWeight: '800' }}>Breakdown Help</h3>
+              <button className="close-modal-btn" onClick={() => setIsBreakdownModalOpen(false)}>✕</button>
+            </div>
+
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              setIsDiagnosing(true);
+              setTimeout(() => {
+                setIsDiagnosing(false);
+                setBreakdownResult({
+                  issue: breakdownDesc || "Engine noise & coolant smoke detected",
+                  severity: "High Priority Breakdown",
+                  recommendation: "Emergency Mobile Crane & Engine Repair Van dispatched to NH-48 Katraj Bypass (ETA: 12 Mins)."
+                });
+              }, 1200);
+            }}>
+              {/* Field 1: Upload Photo of Damage */}
+              <div style={{ marginBottom: '1.5rem' }}>
+                <label style={{ display: 'block', fontSize: '0.95rem', fontWeight: '600', color: '#334155', marginBottom: '0.6rem' }}>
+                  Upload Photo of Damage
+                </label>
+                <label
                   style={{
-                    backgroundColor: '#f1f5f9',
-                    color: '#475569',
-                    padding: '10px 18px',
-                    borderRadius: '10px',
-                    border: '1px solid #cbd5e1',
-                    fontWeight: '600',
-                    cursor: 'pointer'
-                  }}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  style={{
-                    backgroundColor: '#dc2626',
-                    color: '#ffffff',
-                    padding: '10px 20px',
-                    borderRadius: '10px',
-                    border: 'none',
-                    fontWeight: '700',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    border: '2px dashed #cbd5e1',
+                    borderRadius: '16px',
+                    padding: '2.5rem 1.5rem',
+                    background: '#ffffff',
                     cursor: 'pointer',
-                    boxShadow: '0 4px 12px rgba(220, 38, 38, 0.3)'
+                    transition: 'all 0.2s ease',
+                    minHeight: '130px'
                   }}
                 >
-                  🔒 Register & Activate SOS
-                </button>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    style={{ display: 'none' }}
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        setBreakdownPhoto(URL.createObjectURL(e.target.files[0]));
+                      }
+                    }}
+                  />
+                  {breakdownPhoto ? (
+                    <div style={{ textAlign: 'center' }}>
+                      <img src={breakdownPhoto} alt="Damage Upload" style={{ maxHeight: '110px', borderRadius: '10px', objectFit: 'cover' }} />
+                      <div style={{ fontSize: '0.78rem', color: '#16a34a', fontWeight: '700', marginTop: '0.4rem' }}>✓ Photo Uploaded</div>
+                    </div>
+                  ) : (
+                    <div style={{ textAlign: 'center', color: '#64748b' }}>
+                      <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="#64748b" strokeWidth="2" style={{ marginBottom: '0.4rem' }}>
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="17 8 12 3 7 8" />
+                        <line x1="12" y1="3" x2="12" y2="15" />
+                      </svg>
+                      <div style={{ fontWeight: '700', fontSize: '0.9rem', color: '#475569' }}>Click to upload</div>
+                    </div>
+                  )}
+                </label>
               </div>
+
+              {/* Field 2: Describe the Issue */}
+              <div style={{ marginBottom: '1.75rem' }}>
+                <label style={{ display: 'block', fontSize: '0.95rem', fontWeight: '600', color: '#334155', marginBottom: '0.6rem' }}>
+                  Describe the Issue
+                </label>
+                <textarea
+                  rows="4"
+                  value={breakdownDesc}
+                  onChange={(e) => setBreakdownDesc(e.target.value)}
+                  placeholder="e.g., Engine is making a strange noise and there's smoke coming from the hood."
+                  style={{
+                    width: '100%',
+                    padding: '0.85rem 1rem',
+                    borderRadius: '14px',
+                    border: '1px solid #cbd5e1',
+                    background: '#ffffff',
+                    fontSize: '0.9rem',
+                    color: '#0f172a',
+                    boxSizing: 'border-box',
+                    fontFamily: 'inherit',
+                    outline: 'none',
+                    resize: 'vertical'
+                  }}
+                />
+              </div>
+
+              {/* Diagnosis Output Card */}
+              {breakdownResult && (
+                <div style={{ background: '#ecfdf5', border: '1px solid #6ee7b7', padding: '1rem', borderRadius: '14px', marginBottom: '1.5rem' }}>
+                  <div style={{ fontWeight: '800', color: '#047857', fontSize: '0.95rem', marginBottom: '0.3rem' }}>
+                    🔍 AI Breakdown Diagnosis: {breakdownResult.issue}
+                  </div>
+                  <div style={{ fontSize: '0.85rem', color: '#065f46', lineHeight: '1.4' }}>
+                    {breakdownResult.recommendation}
+                  </div>
+                </div>
+              )}
+
+              {/* Primary Submit Button */}
+              <button
+                type="submit"
+                disabled={isDiagnosing}
+                style={{
+                  width: '100%',
+                  padding: '1rem',
+                  borderRadius: '16px',
+                  background: 'linear-gradient(135deg, #e02424, #d946ef)',
+                  color: '#ffffff',
+                  fontWeight: '800',
+                  fontSize: '1rem',
+                  border: 'none',
+                  cursor: 'pointer',
+                  boxShadow: '0 8px 24px rgba(217, 70, 239, 0.35)',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                {isDiagnosing ? 'Analyzing Breakdown Issue...' : 'Diagnose Problem'}
+              </button>
             </form>
           </div>
         </div>
       )}
 
-      {/* Edit Profile Modal Popup */}
-      {isEditModalOpen && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(15, 23, 42, 0.65)',
-          backdropFilter: 'blur(6px)',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          zIndex: 9999,
-          padding: '20px'
-        }}>
-          <div style={{
-            backgroundColor: '#ffffff',
-            borderRadius: '20px',
-            width: '100%',
-            maxWidth: '650px',
-            maxHeight: '90vh',
-            overflowY: 'auto',
-            padding: '28px',
-            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1)',
-            animation: 'fadeIn 0.2s ease-out'
-          }}>
-            {/* Modal Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '12px', borderBottom: '1px solid #e2e8f0' }}>
-              <h2 style={{ fontSize: '1.35rem', color: '#0f172a', fontWeight: '700', margin: 0 }}>
-                ✏️ {t.profileTitle}
-              </h2>
-              <button
-                type="button"
-                onClick={handleCloseModal}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  fontSize: '1.5rem',
-                  cursor: 'pointer',
-                  color: '#64748b',
-                  lineHeight: 1
-                }}
-              >
-                ✕
-              </button>
+      {/* Tyre Repair Modal */}
+      {isTyreModalOpen && (
+        <div className="dash-modal-overlay">
+          <div className="dash-modal-card" style={{ maxWidth: '620px', background: '#fffdf7', padding: '1.75rem' }}>
+            <div className="dash-modal-header" style={{ marginBottom: '0.5rem' }}>
+              <h3 style={{ color: '#0f172a', fontSize: '1.4rem', fontWeight: '800' }}>🛞 Tyre Repair</h3>
+              <button className="close-modal-btn" onClick={() => setIsTyreModalOpen(false)}>✕</button>
             </div>
 
-            {/* Modal Form */}
-            <form onSubmit={handleSaveProfile}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '18px' }}>
-                
-                {/* Full Name */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <label style={{ fontSize: '0.875rem', fontWeight: '600', color: '#334155' }}>
-                    {t.nameLabel} *
-                  </label>
-                  <input
-                    type="text"
-                    value={editForm.name}
-                    onChange={(e) => handleInputChange('name', e.target.value)}
-                    placeholder="Enter your full name (e.g. Ramesh Kumar)"
-                    style={{
-                      padding: '12px 14px',
-                      borderRadius: '10px',
-                      border: '1px solid #cbd5e1',
-                      fontSize: '0.95rem',
-                      outline: 'none',
-                      backgroundColor: '#f8fafc'
-                    }}
-                  />
-                </div>
+            {/* Slogan Banner */}
+            <div style={{
+              background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+              borderRadius: '16px',
+              padding: '1.1rem 1.25rem',
+              marginBottom: '1.5rem',
+              textAlign: 'center'
+            }}>
+              <div style={{ fontSize: '1.15rem', fontWeight: '800', color: '#ffffff', letterSpacing: '0.3px' }}>
+                "Where the tyre dies, help will rise"
+              </div>
+              <div style={{ fontSize: '0.78rem', color: '#fef3c7', marginTop: '0.25rem', fontWeight: '500' }}>
+                SaarthiMitra Highway Tyre Assistance Network
+              </div>
+            </div>
 
-                {/* Phone Number */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <label style={{ fontSize: '0.875rem', fontWeight: '600', color: '#334155' }}>
-                    {t.phoneLabel} *
-                  </label>
-                  <input
-                    type="text"
-                    value={editForm.phone}
-                    onChange={(e) => handleInputChange('phone', e.target.value)}
-                    placeholder="+91 Mobile Number"
-                    style={{
-                      padding: '12px 14px',
-                      borderRadius: '10px',
-                      border: '1px solid #cbd5e1',
-                      fontSize: '0.95rem',
-                      outline: 'none',
-                      backgroundColor: '#f8fafc'
-                    }}
-                  />
-                </div>
+            {/* Nearby Tyre Shops Header */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+              <span style={{ fontSize: '0.95rem', fontWeight: '700', color: '#334155' }}>
+                📍 Nearby Tyre Repair Shops (5–10 km)
+              </span>
+              <span style={{ fontSize: '0.72rem', background: '#dcfce7', color: '#166534', padding: '0.2rem 0.6rem', borderRadius: '999px', fontWeight: '600' }}>
+                Live GPS
+              </span>
+            </div>
 
-                {/* Email Address */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <label style={{ fontSize: '0.875rem', fontWeight: '600', color: '#334155' }}>
-                    {t.emailLabel}
-                  </label>
-                  <input
-                    type="email"
-                    value={editForm.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
-                    placeholder="name@example.com"
-                    style={{
-                      padding: '12px 14px',
-                      borderRadius: '10px',
-                      border: '1px solid #cbd5e1',
-                      fontSize: '0.95rem',
-                      outline: 'none',
-                      backgroundColor: '#f8fafc'
-                    }}
-                  />
+            {/* Tyre Shop Cards */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              {/* Shop 1 */}
+              <div style={{ background: '#ffffff', border: '1px solid #fde68a', padding: '1rem', borderRadius: '14px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ fontWeight: '700', color: '#92400e', fontSize: '0.95rem' }}>🛞 Katraj Highway Tyre Works</div>
+                  <span style={{ fontSize: '0.72rem', background: '#fef3c7', color: '#92400e', padding: '0.15rem 0.5rem', borderRadius: '999px', fontWeight: '700' }}>5.2 km</span>
                 </div>
+                <div style={{ fontSize: '0.78rem', color: '#78350f', margin: '0.3rem 0' }}>Tubeless Puncture • Air Pressure • Vulcanizing • 24/7</div>
+                <div style={{ fontSize: '0.72rem', color: '#64748b' }}>⭐ 4.5 Rating • Open Now</div>
+                <a href="tel:+919922099887" className="call-btn-mini" style={{ marginTop: '0.5rem', display: 'inline-flex', background: '#d97706', color: '#fff', border: 'none' }}>
+                  📞 Call Now (+91 9922099887)
+                </a>
+              </div>
 
-                {/* Driving License */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <label style={{ fontSize: '0.875rem', fontWeight: '600', color: '#334155' }}>
-                    {t.licenseLabel}
-                  </label>
-                  <input
-                    type="text"
-                    value={editForm.license}
-                    onChange={(e) => handleInputChange('license', e.target.value)}
-                    placeholder="DL Number"
-                    style={{
-                      padding: '12px 14px',
-                      borderRadius: '10px',
-                      border: '1px solid #cbd5e1',
-                      fontSize: '0.95rem',
-                      outline: 'none',
-                      backgroundColor: '#f8fafc'
-                    }}
-                  />
+              {/* Shop 2 */}
+              <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', padding: '1rem', borderRadius: '14px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ fontWeight: '700', color: '#0f172a', fontSize: '0.95rem' }}>🛞 Rajesh Heavy Vehicle Tyre Center</div>
+                  <span style={{ fontSize: '0.72rem', background: '#e0f2fe', color: '#0369a1', padding: '0.15rem 0.5rem', borderRadius: '999px', fontWeight: '700' }}>6.8 km</span>
                 </div>
+                <div style={{ fontSize: '0.78rem', color: '#475569', margin: '0.3rem 0' }}>Truck Tyres • Stepney Change • Wheel Alignment</div>
+                <div style={{ fontSize: '0.72rem', color: '#64748b' }}>⭐ 4.3 Rating • Open Now</div>
+                <a href="tel:+919876012345" className="call-btn-mini" style={{ marginTop: '0.5rem', display: 'inline-flex' }}>
+                  📞 Call Now (+91 9876012345)
+                </a>
+              </div>
 
-                {/* City */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <label style={{ fontSize: '0.875rem', fontWeight: '600', color: '#334155' }}>
-                    {t.cityLabel}
-                  </label>
-                  <input
-                    type="text"
-                    value={editForm.city}
-                    onChange={(e) => handleInputChange('city', e.target.value)}
-                    placeholder="City, State"
-                    style={{
-                      padding: '12px 14px',
-                      borderRadius: '10px',
-                      border: '1px solid #cbd5e1',
-                      fontSize: '0.95rem',
-                      outline: 'none',
-                      backgroundColor: '#f8fafc'
-                    }}
-                  />
+              {/* Shop 3 */}
+              <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', padding: '1rem', borderRadius: '14px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ fontWeight: '700', color: '#0f172a', fontSize: '0.95rem' }}>🛞 Apollo & JK Truck Tyre Hub</div>
+                  <span style={{ fontSize: '0.72rem', background: '#e0f2fe', color: '#0369a1', padding: '0.15rem 0.5rem', borderRadius: '999px', fontWeight: '700' }}>7.5 km</span>
                 </div>
+                <div style={{ fontSize: '0.78rem', color: '#475569', margin: '0.3rem 0' }}>New Tyres • Retreading • Air Pressure Check</div>
+                <div style={{ fontSize: '0.72rem', color: '#64748b' }}>⭐ 4.6 Rating • Open Now</div>
+                <a href="tel:+919422054321" className="call-btn-mini" style={{ marginTop: '0.5rem', display: 'inline-flex' }}>
+                  📞 Call Now (+91 9422054321)
+                </a>
+              </div>
 
-                {/* Vehicle Type */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <label style={{ fontSize: '0.875rem', fontWeight: '600', color: '#334155' }}>
-                    {t.vehicleLabel}
-                  </label>
-                  <select
-                    value={editForm.vehicle}
-                    onChange={(e) => handleInputChange('vehicle', e.target.value)}
+              {/* Shop 4 */}
+              <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', padding: '1rem', borderRadius: '14px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ fontWeight: '700', color: '#0f172a', fontSize: '0.95rem' }}>🛞 NH-48 Mobile Puncture Van Service</div>
+                  <span style={{ fontSize: '0.72rem', background: '#dcfce7', color: '#166534', padding: '0.15rem 0.5rem', borderRadius: '999px', fontWeight: '700' }}>8.1 km</span>
+                </div>
+                <div style={{ fontSize: '0.78rem', color: '#475569', margin: '0.3rem 0' }}>Mobile Van • Emergency Roadside • Burst Tyre Replacement</div>
+                <div style={{ fontSize: '0.72rem', color: '#64748b' }}>⭐ 4.7 Rating • Open 24/7</div>
+                <a href="tel:+919011223344" className="call-btn-mini" style={{ marginTop: '0.5rem', display: 'inline-flex', background: '#16a34a', color: '#fff', border: 'none' }}>
+                  📞 Emergency Call (+91 9011223344)
+                </a>
+              </div>
+
+              {/* Shop 5 */}
+              <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', padding: '1rem', borderRadius: '14px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ fontWeight: '700', color: '#0f172a', fontSize: '0.95rem' }}>🛞 Shree Ganesh Tyre & Service</div>
+                  <span style={{ fontSize: '0.72rem', background: '#e0f2fe', color: '#0369a1', padding: '0.15rem 0.5rem', borderRadius: '999px', fontWeight: '700' }}>9.4 km</span>
+                </div>
+                <div style={{ fontSize: '0.78rem', color: '#475569', margin: '0.3rem 0' }}>MRF • CEAT Dealer • Balancing & Alignment</div>
+                <div style={{ fontSize: '0.72rem', color: '#64748b' }}>⭐ 4.4 Rating • Open Now</div>
+                <a href="tel:+919765432100" className="call-btn-mini" style={{ marginTop: '0.5rem', display: 'inline-flex' }}>
+                  📞 Call Now (+91 9765432100)
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* AI Voice Helper — Language Translator */}
+      {isVoiceModalOpen && (
+        <div className="dash-modal-overlay">
+          <div className="dash-modal-card" style={{ maxWidth: '620px', background: '#f5f3ff', padding: '1.75rem' }}>
+            <div className="dash-modal-header" style={{ marginBottom: '0.5rem' }}>
+              <h3 style={{ color: '#0f172a', fontSize: '1.4rem', fontWeight: '800' }}>🎙️ AI Voice Helper</h3>
+              <button className="close-modal-btn" onClick={() => { setIsVoiceModalOpen(false); setVoiceInputText(''); setTranslatedText(''); }}>✕</button>
+            </div>
+
+            {/* Slogan Banner */}
+            <div style={{
+              background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
+              borderRadius: '16px',
+              padding: '1.1rem 1.25rem',
+              marginBottom: '1.5rem',
+              textAlign: 'center'
+            }}>
+              <div style={{ fontSize: '1.15rem', fontWeight: '800', color: '#ffffff', letterSpacing: '0.3px' }}>
+                "Speak in English, translate to any language"
+              </div>
+              <div style={{ fontSize: '0.78rem', color: '#c7d2fe', marginTop: '0.25rem', fontWeight: '500' }}>
+                SaarthiMitra Highway Voice Translator
+              </div>
+            </div>
+
+            {/* Language Selector */}
+            <div style={{ marginBottom: '1.25rem' }}>
+              <label style={{ display: 'block', fontSize: '0.95rem', fontWeight: '600', color: '#334155', marginBottom: '0.5rem' }}>
+                🌐 Translate To:
+              </label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                {Object.entries(translationDict).map(([code, info]) => (
+                  <button
+                    key={code}
+                    onClick={() => { setTargetLang(code); if (voiceInputText) handleTranslate(voiceInputText); }}
                     style={{
-                      padding: '12px 14px',
-                      borderRadius: '10px',
-                      border: '1px solid #cbd5e1',
-                      fontSize: '0.95rem',
-                      outline: 'none',
-                      backgroundColor: '#f8fafc'
+                      padding: '0.5rem 1rem',
+                      borderRadius: '999px',
+                      border: targetLang === code ? '2px solid #4f46e5' : '1px solid #cbd5e1',
+                      background: targetLang === code ? '#e0e7ff' : '#ffffff',
+                      color: targetLang === code ? '#3730a3' : '#475569',
+                      fontWeight: '700',
+                      fontSize: '0.85rem',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease'
                     }}
                   >
-                    <option value="Heavy Commercial Truck">Heavy Commercial Truck</option>
-                    <option value="Light Commercial Vehicle (LCV)">Light Commercial Vehicle (LCV)</option>
-                    <option value="Cab / Taxi">Cab / Taxi</option>
-                    <option value="Container Trailer">Container Trailer</option>
-                  </select>
-                </div>
-
+                    {info.flag} {info.name}
+                  </button>
+                ))}
               </div>
+            </div>
 
-              {/* Modal Actions */}
-              <div style={{ marginTop: '28px', display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-                <button
-                  type="button"
-                  onClick={handleCloseModal}
+            {/* Mic Button */}
+            <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+              <button
+                onClick={startVoiceRecognition}
+                disabled={isListening}
+                style={{
+                  width: '90px',
+                  height: '90px',
+                  borderRadius: '50%',
+                  border: 'none',
+                  background: isListening ? 'linear-gradient(135deg, #ef4444, #dc2626)' : 'linear-gradient(135deg, #6366f1, #4f46e5)',
+                  color: '#ffffff',
+                  fontSize: '2.2rem',
+                  cursor: 'pointer',
+                  boxShadow: isListening ? '0 0 30px rgba(239,68,68,0.5)' : '0 8px 24px rgba(99,102,241,0.35)',
+                  transition: 'all 0.2s ease',
+                  animation: isListening ? 'pulse 1.2s infinite' : 'none'
+                }}
+              >
+                🎙️
+              </button>
+              <div style={{ fontSize: '0.85rem', fontWeight: '600', color: isListening ? '#dc2626' : '#4f46e5', marginTop: '0.5rem' }}>
+                {isListening ? '🔴 Listening... Speak now!' : 'Tap to Speak'}
+              </div>
+            </div>
+
+            {/* Or Type Manually */}
+            <div style={{ marginBottom: '1rem' }}>
+              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', color: '#64748b', marginBottom: '0.4rem' }}>
+                Or type your text:
+              </label>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <input
+                  type="text"
+                  value={voiceInputText}
+                  onChange={(e) => setVoiceInputText(e.target.value)}
+                  placeholder="e.g., my truck broke down"
                   style={{
-                    backgroundColor: '#f1f5f9',
-                    color: '#475569',
-                    padding: '12px 20px',
-                    borderRadius: '10px',
+                    flex: 1,
+                    padding: '0.75rem 1rem',
+                    borderRadius: '14px',
                     border: '1px solid #cbd5e1',
-                    fontWeight: '600',
-                    fontSize: '0.95rem',
-                    cursor: 'pointer'
+                    background: '#ffffff',
+                    fontSize: '0.9rem',
+                    color: '#0f172a',
+                    fontWeight: '500',
+                    outline: 'none'
                   }}
-                >
-                  {t.cancelBtn}
-                </button>
-                
+                />
                 <button
-                  type="submit"
+                  onClick={() => handleTranslate(voiceInputText)}
+                  disabled={!voiceInputText.trim()}
                   style={{
-                    backgroundColor: 'var(--primary-blue)',
-                    color: '#ffffff',
-                    padding: '12px 24px',
-                    borderRadius: '10px',
+                    padding: '0.75rem 1.25rem',
+                    borderRadius: '14px',
+                    background: '#4f46e5',
+                    color: '#fff',
                     border: 'none',
-                    fontWeight: '600',
-                    fontSize: '0.95rem',
+                    fontWeight: '700',
                     cursor: 'pointer',
-                    boxShadow: '0 4px 12px rgba(11, 61, 140, 0.25)'
+                    fontSize: '0.85rem'
                   }}
                 >
-                  💾 {t.saveBtn}
+                  Translate
                 </button>
               </div>
+            </div>
+
+            {/* Your Speech Box */}
+            {voiceInputText && (
+              <div style={{ background: '#ffffff', border: '1px solid #c7d2fe', padding: '1rem', borderRadius: '14px', marginBottom: '0.75rem' }}>
+                <div style={{ fontSize: '0.72rem', fontWeight: '700', color: '#6366f1', marginBottom: '0.3rem', textTransform: 'uppercase' }}>
+                  🎤 Your Speech (English)
+                </div>
+                <div style={{ fontSize: '1.05rem', fontWeight: '600', color: '#0f172a' }}>
+                  "{voiceInputText}"
+                </div>
+              </div>
+            )}
+
+            {/* Translated Output Box */}
+            {translatedText && (
+              <div style={{ background: '#ecfdf5', border: '1px solid #6ee7b7', padding: '1rem', borderRadius: '14px' }}>
+                <div style={{ fontSize: '0.72rem', fontWeight: '700', color: '#059669', marginBottom: '0.3rem', textTransform: 'uppercase' }}>
+                  🌐 Translation ({translationDict[targetLang]?.name})
+                </div>
+                <div style={{ fontSize: '1.2rem', fontWeight: '700', color: '#065f46' }}>
+                  {translatedText}
+                </div>
+              </div>
+            )}
+
+            {/* Quick Phrases */}
+            <div style={{ marginTop: '1.25rem' }}>
+              <div style={{ fontSize: '0.82rem', fontWeight: '600', color: '#64748b', marginBottom: '0.5rem' }}>⚡ Quick Phrases:</div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+                {['hello', 'help', 'breakdown', 'tyre puncture', 'i need help', 'engine overheating', 'need towing', 'thank you'].map((phrase) => (
+                  <button
+                    key={phrase}
+                    onClick={() => { setVoiceInputText(phrase); handleTranslate(phrase); }}
+                    style={{
+                      padding: '0.35rem 0.75rem',
+                      borderRadius: '999px',
+                      border: '1px solid #e2e8f0',
+                      background: '#ffffff',
+                      color: '#475569',
+                      fontSize: '0.78rem',
+                      fontWeight: '600',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {phrase}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Configure SOS Numbers Modal */}
+      {isSosSetupOpen && (
+        <div className="dash-modal-overlay">
+          <div className="dash-modal-card">
+            <div className="dash-modal-header">
+              <h3>⚙️ Configure Emergency SOS Contacts</h3>
+              <button className="close-modal-btn" onClick={() => setIsSosSetupOpen(false)}>✕</button>
+            </div>
+
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              try {
+                localStorage.setItem('sarthi_sos_contacts', JSON.stringify(sosContacts));
+              } catch (err) { }
+              setIsSosSetupOpen(false);
+              alert("Emergency SOS Contacts Updated Successfully!");
+            }}>
+              <div className="input-group" style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.4rem', fontWeight: '600' }}>Primary Emergency Contact (1)</label>
+                <input
+                  type="tel"
+                  value={sosContacts.contact1}
+                  onChange={e => setSosContacts({ ...sosContacts, contact1: e.target.value })}
+                  style={{ width: '100%', padding: '0.75rem', borderRadius: '12px', background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#0f172a', fontWeight: '600', boxSizing: 'border-box' }}
+                />
+              </div>
+
+              <div className="input-group" style={{ marginBottom: '1.25rem' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.4rem', fontWeight: '600' }}>Secondary Emergency Contact (2)</label>
+                <input
+                  type="tel"
+                  value={sosContacts.contact2}
+                  onChange={e => setSosContacts({ ...sosContacts, contact2: e.target.value })}
+                  style={{ width: '100%', padding: '0.75rem', borderRadius: '12px', background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#0f172a', fontWeight: '600', boxSizing: 'border-box' }}
+                />
+              </div>
+
+              <button type="submit" className="lang-btn" style={{ width: '100%', background: 'var(--accent-blue)', color: '#ffffff', padding: '0.75rem', fontSize: '0.95rem' }}>
+                {t.save}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Profile Modal */}
+      {isProfileModalOpen && (
+        <div className="dash-modal-overlay">
+          <div className="dash-modal-card">
+            <div className="dash-modal-header">
+              <h3>👤 {t.edit_profile}</h3>
+              <button className="close-modal-btn" onClick={() => setIsProfileModalOpen(false)}>✕</button>
+            </div>
+
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              try {
+                localStorage.setItem('driverProfile', JSON.stringify(profile));
+              } catch (err) { }
+              setIsProfileModalOpen(false);
+              alert("Driver Profile Saved Successfully!");
+            }}>
+              <div className="input-group" style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.4rem', fontWeight: '600' }}>Full Name</label>
+                <input
+                  type="text"
+                  value={profile.fullName}
+                  onChange={e => setProfile({ ...profile, fullName: e.target.value })}
+                  style={{ width: '100%', padding: '0.75rem', borderRadius: '12px', background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#0f172a', fontWeight: '600', boxSizing: 'border-box' }}
+                />
+              </div>
+
+              <div className="input-group" style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.4rem', fontWeight: '600' }}>Truck / Vehicle Number</label>
+                <input
+                  type="text"
+                  value={profile.vehicleNumber}
+                  onChange={e => setProfile({ ...profile, vehicleNumber: e.target.value })}
+                  style={{ width: '100%', padding: '0.75rem', borderRadius: '12px', background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#0f172a', fontWeight: '600', boxSizing: 'border-box' }}
+                />
+              </div>
+
+              <div className="input-group" style={{ marginBottom: '1.25rem' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.4rem', fontWeight: '600' }}>Driving License Number</label>
+                <input
+                  type="text"
+                  value={profile.licenseNumber}
+                  onChange={e => setProfile({ ...profile, licenseNumber: e.target.value })}
+                  style={{ width: '100%', padding: '0.75rem', borderRadius: '12px', background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#0f172a', fontWeight: '600', boxSizing: 'border-box' }}
+                />
+              </div>
+
+              <button type="submit" className="lang-btn" style={{ width: '100%', background: 'var(--accent-blue)', color: '#ffffff', padding: '0.75rem', fontSize: '0.95rem' }}>
+                {t.save}
+              </button>
             </form>
           </div>
         </div>
       )}
     </div>
-  )
+  );
 }
-
-export default Dashboard
