@@ -132,6 +132,8 @@ export default function Login() {
         licenseNumber: '',
         vehicleNumber: '',
         emergencyContact: '',
+        medicalCert: null,
+        medicalCertName: '',
         city: ''
     });
     const [passengerInfo, setPassengerInfo] = useState({
@@ -248,6 +250,10 @@ export default function Login() {
             setError('Please enter your vehicle / truck number');
             return;
         }
+        if (!driverInfo.medicalCert) {
+            setError('Please upload your Medical / Non-Alcoholic Fitness Certificate');
+            return;
+        }
         setError('');
         setLoading(true);
         setTimeout(() => {
@@ -258,6 +264,8 @@ export default function Login() {
                     licenseNumber: driverInfo.licenseNumber,
                     vehicleNumber: driverInfo.vehicleNumber,
                     emergencyContact: driverInfo.emergencyContact,
+                    medicalCert: driverInfo.medicalCert,
+                    medicalCertName: driverInfo.medicalCertName,
                     role: selectedRole || 'Truck Driver',
                     phone: phone || '+91 9876543210'
                 }));
@@ -655,7 +663,68 @@ export default function Login() {
                                     </div>
                                 </div>
 
-
+                                <div className="input-group">
+                                    <label htmlFor="medicalCert" style={{ fontWeight: '600', color: '#1e293b' }}>
+                                        Medical / Non-Alcoholic Fitness Certificate
+                                    </label>
+                                    <label
+                                        htmlFor="medicalCertInput"
+                                        style={{
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            border: driverInfo.medicalCert ? '2px solid #10b981' : '2px dashed #cbd5e1',
+                                            borderRadius: '16px',
+                                            padding: '1.25rem 1rem',
+                                            background: driverInfo.medicalCert ? '#f0fdf4' : '#f8fafc',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s ease',
+                                            textAlign: 'center',
+                                            marginTop: '0.35rem'
+                                        }}
+                                    >
+                                        <input
+                                            type="file"
+                                            id="medicalCertInput"
+                                            accept="image/*,application/pdf"
+                                            style={{ display: 'none' }}
+                                            onChange={(e) => {
+                                                if (e.target.files && e.target.files[0]) {
+                                                    const file = e.target.files[0];
+                                                    const reader = new FileReader();
+                                                    reader.onloadend = () => {
+                                                        setDriverInfo(prev => ({
+                                                            ...prev,
+                                                            medicalCert: reader.result,
+                                                            medicalCertName: file.name
+                                                        }));
+                                                        if (error) setError('');
+                                                    };
+                                                    reader.readAsDataURL(file);
+                                                }
+                                            }}
+                                        />
+                                        {driverInfo.medicalCert ? (
+                                            <div>
+                                                <div style={{ fontSize: '1.75rem', marginBottom: '0.2rem' }}>🏥</div>
+                                                <strong style={{ color: '#166534', fontSize: '0.9rem', display: 'block' }}>✓ Medical Certificate Uploaded</strong>
+                                                <small style={{ color: '#15803d', fontSize: '0.78rem' }}>{driverInfo.medicalCertName || 'fitness_certificate.pdf'}</small>
+                                                <div style={{ fontSize: '0.72rem', color: '#047857', marginTop: '0.35rem', textDecoration: 'underline', fontWeight: '700' }}>Click to change file</div>
+                                            </div>
+                                        ) : (
+                                            <div>
+                                                <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="#64748b" strokeWidth="2" style={{ marginBottom: '0.35rem' }}>
+                                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                                    <polyline points="17 8 12 3 7 8" />
+                                                    <line x1="12" y1="3" x2="12" y2="15" />
+                                                </svg>
+                                                <strong style={{ display: 'block', fontSize: '0.88rem', color: '#334155' }}>Upload Medical / Non-Alcoholic Cert</strong>
+                                                <small style={{ fontSize: '0.75rem', color: '#64748b' }}>(Fitness & Non-Alcoholic Medical Report - JPG, PNG, PDF)</small>
+                                            </div>
+                                        )}
+                                    </label>
+                                </div>
 
                                 {error && <div className="error-message" style={{color: 'var(--error-color)', fontSize: '0.875rem', marginTop: '0.25rem'}}>{error}</div>}
 

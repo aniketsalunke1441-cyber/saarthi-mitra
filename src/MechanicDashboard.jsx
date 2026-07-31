@@ -529,6 +529,50 @@ export default function MechanicDashboard() {
       {/* HIDDEN FILE INPUT */}
       <input type="file" ref={fileInputRef} onChange={handlePhotoUpload} accept="image/*" style={{ display: 'none' }} />
 
+      {/* EMERGENCY SOS REQUEST POPUP MODAL */}
+      {showSosPopup && (
+        <div className="mechanic-modal-overlay">
+          <div className="sos-popup-card">
+            <div className="sos-badge">🚨 EMERGENCY SOS BREAKDOWN REQUEST</div>
+            <h3 className="sos-title">{incomingSOS.issue}</h3>
+            
+            <div className="sos-details">
+              <div className="sos-detail-row">
+                <span className="label">Customer:</span>
+                <span className="value"><strong>{incomingSOS.customer}</strong></span>
+              </div>
+              <div className="sos-detail-row">
+                <span className="label">Vehicle:</span>
+                <span className="value">{incomingSOS.vehicle}</span>
+              </div>
+              <div className="sos-detail-row">
+                <span className="label">Location:</span>
+                <span className="value">📍 {incomingSOS.location} ({incomingSOS.distance})</span>
+              </div>
+              <div className="sos-detail-row">
+                <span className="label">Estimated Earnings:</span>
+                <span className="value fare-badge">₹{incomingSOS.estimatedFare}</span>
+              </div>
+            </div>
+
+            {incomingSOS.photo && (
+              <div style={{ margin: '0.85rem 0', textAlign: 'center' }}>
+                <img src={incomingSOS.photo} alt="Breakdown Damage" style={{ maxHeight: '140px', borderRadius: '12px', objectFit: 'cover' }} />
+              </div>
+            )}
+
+            <div className="sos-actions">
+              <button className="btn-accept-sos" onClick={handleAcceptSOS}>
+                ✅ Accept Repair Job (₹{incomingSOS.estimatedFare})
+              </button>
+              <button className="btn-decline-sos" onClick={handleDeclineSOS}>
+                ❌ Decline
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* LIVE GOOGLE MAP MODAL */}
       {showNavModal && (
         <div className="mechanic-modal-overlay">
